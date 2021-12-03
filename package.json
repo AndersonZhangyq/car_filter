@@ -2,7 +2,7 @@
   "name": "car_filter",
   "version": "0.0.1",
   "description": "A Quasar Framework app",
-  "productName": "Quasar App",
+  "productName": "Car Filter",
   "author": "Anderson <andersonzhangyq@gmail.com>",
   "private": true,
   "scripts": {
