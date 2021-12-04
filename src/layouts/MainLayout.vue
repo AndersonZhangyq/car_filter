@@ -100,7 +100,23 @@
                       />
                     </template>
                     <template v-else>
+                      <q-input
+                        v-if="prop_key == 'dealer_price'"
+                        type="number"
+                        v-model.number="property_filter[group_name][prop_key]"
+                        label="经销商报价（万）"
+                        @blur="
+                          updatePropertyFilterList(
+                            prop_key,
+                            property_filter[group_name][prop_key],
+                            true,
+                            prop['text'],
+                            group_name
+                          )
+                        "
+                      />
                       <q-select
+                        v-else
                         :filled="
                           property_filter[group_name][prop_key].length !== 0
                         "
@@ -272,6 +288,13 @@ export default defineComponent({
             }
           }
         }
+      } else if (typeof value === "number") {
+        property_filter_list[key] = { isRawValue: isRawValue, value: value };
+        property_filter_display[key] = {
+          text: `${text}: ${value} 万以下`,
+          isRawValue: isRawValue,
+          group_name: group_name,
+        };
       }
       applyFilter();
     };
@@ -286,9 +309,14 @@ export default defineComponent({
       delete property_filter_display[key];
       if ("isRawValue" in value) {
         if (value["isRawValue"] === true) {
-          const idx =
-            property_filter[value["group_name"]][value["key"]].indexOf(key);
-          property_filter[value["group_name"]][value["key"]].splice(idx, 1);
+          if (key === "dealer_price") {
+            delete property_filter_list[key];
+            property_filter[value["group_name"]][key] = null;
+          } else {
+            const idx =
+              property_filter[value["group_name"]][value["key"]].indexOf(key);
+            property_filter[value["group_name"]][value["key"]].splice(idx, 1);
+          }
         } else {
           const idx =
             property_filter[value["group_name"]][value["parent"]].indexOf(key);
@@ -323,16 +351,22 @@ export default defineComponent({
               rows: car_info_filter_df[key].str.includes("●"),
             });
           } else if (value.isRawValue) {
-            let index_series = null;
-            for (const v of value.value) {
-              const tmp_idx = car_info_filter_df[key].eq(v);
-              index_series =
-                index_series === null ? tmp_idx : index_series.or(tmp_idx);
-            }
-            if (index_series !== null) {
+            if (key === "dealer_price") {
               car_info_filter_df = car_info_filter_df.iloc({
-                rows: index_series,
+                rows: car_info_filter_df["dealer_price_value"].le(value.value),
               });
+            } else {
+              let index_series = null;
+              for (const v of value.value) {
+                const tmp_idx = car_info_filter_df[key].eq(v);
+                index_series =
+                  index_series === null ? tmp_idx : index_series.or(tmp_idx);
+              }
+              if (index_series !== null) {
+                car_info_filter_df = car_info_filter_df.iloc({
+                  rows: index_series,
+                });
+              }
             }
           } else {
             let index_series = null;
