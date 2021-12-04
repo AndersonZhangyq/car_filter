@@ -60,7 +60,7 @@ if __name__ == "__main__":
         while i < len(prop_keys):
             if prop_keys[i].startswith(prop_keys[i - 1]):
                 parent_prop_key = prop_keys[i - 1]
-                if parent_prop_key in ['electric_back_door']:
+                if parent_prop_key in ['electric_back_door', 'auto_park']:
                     i += 1
                     continue
                 child_prop_key = prop_keys[i]

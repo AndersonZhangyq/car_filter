@@ -1,5 +1,30 @@
 <template>
   <div class="q-pa-md">
+    <q-page-sticky class="full-width" position="top">
+      <q-toolbar>
+        <div class="row q-gutter-xs full-width">
+          <q-chip
+            v-for="(value, key) in property_filter_display"
+            :key="key"
+            color="primary"
+            text-color="white"
+          >
+            {{ value["text"] }}
+          </q-chip>
+        </div>
+        <div class="row items-center q-gutter-md full-width">
+          <q-btn
+            class="col-1 offset-1"
+            color="primary"
+            @click="applyFilter"
+            label="Apply"
+          />
+          <div class="col-auto">
+            共 {{ data.series_num }} 车系 {{ data.car_num }} 车型
+          </div>
+        </div>
+      </q-toolbar>
+    </q-page-sticky>
     <div class="row">
       <div class="column">
         <div
@@ -30,7 +55,10 @@
                 </div> -->
                 <div class="col-2">
                   <q-select
-                    filled
+                    :filled="property_filter[group_name][prop_key].length !== 0"
+                    :outlined="
+                      property_filter[group_name][prop_key].length === 0
+                    "
                     v-model="property_filter[group_name][prop_key]"
                     multiple
                     :options="
@@ -47,7 +75,9 @@
                     @update:model-value="
                       updatePropertyFilterList(
                         prop_key,
-                        property_filter[group_name][prop_key]
+                        property_filter[group_name][prop_key],
+                        false,
+                        prop['text']
                       )
                     "
                   />
@@ -71,14 +101,19 @@
                     @update:model-value="
                       updatePropertyFilterList(
                         prop_key,
-                        property_filter[group_name][prop_key]
+                        property_filter[group_name][prop_key],
+                        false,
+                        prop['text']
                       )
                     "
                   />
                 </template>
                 <template v-else>
                   <q-select
-                    filled
+                    :filled="property_filter[group_name][prop_key].length !== 0"
+                    :outlined="
+                      property_filter[group_name][prop_key].length === 0
+                    "
                     v-model="property_filter[group_name][prop_key]"
                     multiple
                     :options="property_value_set[prop_key]"
@@ -87,7 +122,8 @@
                       updatePropertyFilterList(
                         prop_key,
                         property_filter[group_name][prop_key],
-                        true
+                        true,
+                        prop['text']
                       )
                     "
                   />
@@ -97,12 +133,6 @@
           </div>
         </div>
       </div>
-    </div>
-    <div class="row items-center q-pa-sm">
-      <div class="col-11">
-        共 {{ data.series_num }} 车系 {{ data.car_num }} 车型
-      </div>
-      <q-btn class="col-1" color="primary" @click="applyFilter" label="Apply" />
     </div>
     <div class="row q-col-gutter-md items-stretch">
       <div
@@ -147,13 +177,13 @@ export default defineComponent({
 
   setup() {
     const car_info_df = new dfd.DataFrame(car_info);
+    property_group["基本信息"]["car_year"] = { text: "年份" };
     let property_group_refined = JSON.parse(JSON.stringify(property_group));
     // refind property_group
     // delete property_group_refined["基本信息"];
     // delete property_group_refined["车身"];
     // delete property_group_refined["变速箱"];
     // delete property_group_refined["电动机"];
-    property_group_refined["基本信息"]["car_year"] = {text: "年份"};
 
     const data = reactive({
       property_group_refined: property_group_refined,
@@ -193,18 +223,39 @@ export default defineComponent({
 
     const property_filter_list = reactive({});
 
-    const updatePropertyFilterList = (key, value, isRawValue) => {
+    const property_filter_display = reactive({});
+
+    const updatePropertyFilterList = (key, value, isRawValue, text) => {
       if (typeof value === "boolean") {
         if (value === true) {
           property_filter_list[key] = true;
+          property_filter_display[key] = { key: key, text: text };
         } else {
           delete property_filter_list[key];
+          delete property_filter_display[key];
         }
       } else if (typeof value === "object") {
         if (value.length === 0) {
           delete property_filter_list[key];
+          delete property_filter_display[key];
         } else {
           property_filter_list[key] = { isRawValue: isRawValue, value: value };
+          if (isRawValue) {
+            for (const value_item of value) {
+              property_filter_display[value_item] = {
+                text: `${text}: ${value_item}`,
+                isRawValue: isRawValue,
+              };
+            }
+          } else {
+            for (const value_item of value) {
+              property_filter_display[value_item["option"]] = {
+                text: `${text}: ${value_item["label"]}`,
+                isRawValue: isRawValue,
+                parent: key,
+              };
+            }
+          }
         }
       }
     };
@@ -279,6 +330,7 @@ export default defineComponent({
       data,
       property_filter,
       property_filter_list,
+      property_filter_display,
       property_value_set,
       updatePropertyFilterList,
       applyFilter,
