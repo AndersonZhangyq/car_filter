@@ -3,7 +3,7 @@
     <q-header class="bg-blue-grey-1" id="head">
       <q-toolbar class="q-pa-md">
         <div class="column offset-2 col-10">
-          <div class="row q-gutter-xs">
+          <div class="row q-col-gutter-xs">
             <q-chip
               v-for="(value, key) in property_filter_display"
               removable
@@ -18,7 +18,7 @@
           </div>
           <div class="row items-center q-gutter-md">
             <q-btn
-              class="col-1"
+              class="col-sm-2 col-md-1"
               color="primary"
               @click="scrollToCarInfo"
               label="Apply"
@@ -46,7 +46,7 @@
                     : group_name
                 }}
               </div>
-              <div class="col-10 row q-gutter-xs items-center">
+              <div class="col-10 row q-col-gutter-xs items-center">
                 <template v-for="(prop, prop_key) in props" :key="prop_key">
                   <template v-if="'sub_list' in prop">
                     <!-- <div
@@ -62,7 +62,7 @@
                     :label="prop['text'] + ' - ' + sub_prop_name"
                   />
                 </div> -->
-                    <div class="col-2">
+                    <div class="col-md-2 col-sm-4">
                       <q-select
                         :filled="
                           property_filter[group_name][prop_key].length !== 0
@@ -96,7 +96,7 @@
                       />
                     </div>
                   </template>
-                  <div v-else class="col-2" :key="prop_key">
+                  <div v-else class="col-md-2 col-sm-4" :key="prop_key">
                     <!-- <q-checkbox
                   v-model="property_filter[group_name][prop['key']]"
                   @update:model-value="
@@ -154,7 +154,7 @@
         </div>
         <div id="carInfo" class="row q-col-gutter-md items-stretch">
           <div
-            class="col-3"
+            class="col-md-3 col-sm-6"
             v-for="(infos, series_name) in data.car_info_filtered"
             :key="series_name"
           >
@@ -310,19 +310,16 @@ export default defineComponent({
         if (value["isRawValue"] === true) {
           const idx =
             property_filter[value["group_name"]][value["key"]].indexOf(key);
-          property_filter[value["group_name"]][value["key"]] = property_filter[
-            value["group_name"]
-          ][value["key"]].splice(idx, 1);
+          property_filter[value["group_name"]][value["key"]].splice(idx, 1);
         } else {
           const idx =
             property_filter[value["group_name"]][value["parent_name"]].indexOf(
               key
             );
-          property_filter[value["group_name"]][value["group_name"]] =
-            property_filter[value["group_name"]][value["group_name"]].splice(
-              idx,
-              1
-            );
+          property_filter[value["group_name"]][value["group_name"]].splice(
+            idx,
+            1
+          );
         }
       } else {
         delete property_filter_list[key];
@@ -359,9 +356,11 @@ export default defineComponent({
               index_series =
                 index_series === null ? tmp_idx : index_series.or(tmp_idx);
             }
-            car_info_filter_df = car_info_filter_df.iloc({
-              rows: index_series,
-            });
+            if (index_series !== null) {
+              car_info_filter_df = car_info_filter_df.iloc({
+                rows: index_series,
+              });
+            }
           } else {
             let index_series = null;
             for (const v of value.value) {
@@ -369,9 +368,11 @@ export default defineComponent({
               index_series =
                 index_series === null ? tmp_idx : index_series.or(tmp_idx);
             }
-            car_info_filter_df = car_info_filter_df.iloc({
-              rows: index_series,
-            });
+            if (index_series !== null) {
+              car_info_filter_df = car_info_filter_df.iloc({
+                rows: index_series,
+              });
+            }
           }
         });
       }

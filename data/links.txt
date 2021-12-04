@@ -17,3 +17,11 @@ https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=47090%2
 https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=54573%2C39895%2C42336%2C42337%2C42338%2C35320%2C35324%2C35328%2C35333%2C45121&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
 https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=54600%2C54601%2C56213%2C34601%2C53190%2C48722%2C57519%2C36338%2C38614%2C55515&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
 https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=52093%2C51658%2C52806%2C52807%2C52808%2C39698%2C35899%2C45154%2C45155%2C45156&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
+https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=45815%2C51546%2C51547%2C46648%2C34077%2C46928%2C43489%2C49921%2C43288%2C47261&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
+https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=47599%2C41173%2C41174%2C47439%2C55279%2C55281%2C49939%2C40010%2C42322%2C41198&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
+https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=41199%2C35900%2C45672%2C45673%2C39885%2C52602%2C57564%2C57565%2C57568%2C57570&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
+https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=36018%2C42339%2C42340%2C48522%2C48523%2C48524%2C48525%2C52059%2C52060%2C47285&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
+https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=47286%2C50806%2C56509%2C56511%2C46396%2C53723%2C53724%2C53725%2C53726%2C37070&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
+https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=51991%2C51992%2C40755%2C50538%2C51544%2C53559%2C53753%2C53727%2C53728%2C53729&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
+https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=53730%2C47213%2C50941%2C56280%2C52707%2C42190%2C54223%2C32403%2C53333%2C54149&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
+https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list=37071%2C39746%2C36215%2C42049%2C45303%2C45305%2C45306%2C45307%2C44565%2C34891&city_name=%E4%B8%8A%E6%B5%B7&version_code=444
