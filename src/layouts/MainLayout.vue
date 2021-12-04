@@ -49,19 +49,6 @@
               <div class="col-10 row q-col-gutter-xs items-center">
                 <template v-for="(prop, prop_key) in props" :key="prop_key">
                   <template v-if="'sub_list' in prop">
-                    <!-- <div
-                  v-for="(sub_prop_name, sub_prop_key) in prop['sub_list']"
-                  :key="sub_prop_key"
-                  class="col-2"
-                >
-                  <q-select
-                    filled
-                    v-model="property_filter[group_name][sub_prop_key]"
-                    multiple
-                    :options="property_value_set[sub_prop_key]"
-                    :label="prop['text'] + ' - ' + sub_prop_name"
-                  />
-                </div> -->
                     <div class="col-md-2 col-sm-4">
                       <q-select
                         :filled="
@@ -97,16 +84,6 @@
                     </div>
                   </template>
                   <div v-else class="col-md-2 col-sm-4" :key="prop_key">
-                    <!-- <q-checkbox
-                  v-model="property_filter[group_name][prop['key']]"
-                  @update:model-value="
-                    updatePropertyFilterList(
-                      prop['key'],
-                      property_filter[group_name][prop['key']]
-                    )
-                  "
-                  :label="prop['text']"
-                /> -->
                     <template v-if="group_name.endsWith('-tf')">
                       <q-checkbox
                         v-model="property_filter[group_name][prop_key]"
@@ -202,6 +179,7 @@ export default defineComponent({
   setup() {
     const car_info_df = new dfd.DataFrame(car_info);
     property_group["基本信息"]["car_year"] = { text: "年份" };
+    property_group["基本信息"]["dealer_price"] = { text: "经销商报价" };
     let property_group_refined = JSON.parse(JSON.stringify(property_group));
     // refind property_group
     // delete property_group_refined["基本信息"];
@@ -313,13 +291,8 @@ export default defineComponent({
           property_filter[value["group_name"]][value["key"]].splice(idx, 1);
         } else {
           const idx =
-            property_filter[value["group_name"]][value["parent_name"]].indexOf(
-              key
-            );
-          property_filter[value["group_name"]][value["group_name"]].splice(
-            idx,
-            1
-          );
+            property_filter[value["group_name"]][value["parent"]].indexOf(key);
+          property_filter[value["group_name"]][value["parent"]].splice(idx, 1);
         }
       } else {
         delete property_filter_list[key];
