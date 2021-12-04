@@ -151,7 +151,7 @@ export default defineComponent({
     // refind property_group
     // delete property_group_refined["基本信息"];
     // delete property_group_refined["车身"];
-    delete property_group_refined["变速箱"];
+    // delete property_group_refined["变速箱"];
     // delete property_group_refined["电动机"];
     property_group_refined["基本信息"]["car_year"] = {text: "年份"};
 
