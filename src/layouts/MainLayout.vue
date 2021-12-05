@@ -180,20 +180,43 @@
 </template>
 
 <script>
-import { defineComponent, reactive } from "vue";
-import { scroll } from "quasar";
+import { defineComponent, reactive, onMounted } from "vue";
+import { scroll, useQuasar } from "quasar";
 const { getScrollTarget, setVerticalScrollPosition } = scroll;
 
 import * as dfd from "danfojs";
 
-import property_group from "../assets/property_group.json";
-import car_info from "../assets/car_info.json";
+import property_group from "../../public/assets/property_group.json";
 
 export default defineComponent({
   name: "MainLayout",
 
   setup() {
-    const car_info_df = new dfd.DataFrame(car_info);
+    const $q = useQuasar();
+    $q.loading.show({
+      delay: 400, // ms
+    });
+    onMounted(async () => {
+      const response = await fetch("/assets/car_info.json");
+      if (response.ok) {
+        const load_data = async () => {
+          const car_info = await response.json();
+          data.car_info = new dfd.DataFrame(car_info);
+          for (const column_name of data.car_info.columns) {
+            const cur_unique_series = data.car_info[column_name].unique();
+            property_value_set[column_name] = cur_unique_series.to_json({
+              download: false,
+            })[0];
+          }
+          applyFilter();
+          $q.loading.hide();
+        };
+        load_data();
+      } else {
+        console.log(response);
+        $q.loading.hide();
+      }
+    });
     property_group["基本信息"]["car_year"] = { text: "年份" };
     property_group["基本信息"]["dealer_price"] = { text: "经销商报价" };
     let property_group_refined = JSON.parse(JSON.stringify(property_group));
@@ -205,19 +228,11 @@ export default defineComponent({
 
     const data = reactive({
       property_group_refined: property_group_refined,
-      car_info: car_info_df,
       car_info_filtered: {},
       series_num: 0,
       car_num: 0,
     });
-    let property_value_set = {};
-    for (const column_name of car_info_df.columns) {
-      const cur_unique_series = car_info_df[column_name].unique();
-      property_value_set[column_name] = cur_unique_series.to_json({
-        download: false,
-      })[0];
-    }
-    property_value_set = reactive(property_value_set);
+    const property_value_set = reactive({});
 
     let property_filter_tmp = {};
     for (let group_name in property_group) {
@@ -340,7 +355,7 @@ export default defineComponent({
     };
 
     const applyFilter = () => {
-      let car_info_filter_df = car_info_df;
+      let car_info_filter_df = data.car_info;
       if (Object.keys(property_filter_list).length > 0) {
         Object.keys(property_filter_list).forEach((key) => {
           if (car_info_filter_df.size == 0) return;
@@ -416,7 +431,6 @@ export default defineComponent({
       data["series_num"] = Object.keys(tmp_car_info_filtered).length;
       data["car_num"] = car_info_filter_groupBy.data.length;
     };
-    applyFilter();
     return {
       data,
       property_filter,
