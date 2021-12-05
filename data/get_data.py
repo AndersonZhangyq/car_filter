@@ -1,11 +1,12 @@
 import requests
 import json
+from tqdm import tqdm
 
 if __name__ == "__main__":
     with open("links.txt", encoding='utf8') as f:
         links = [line.strip() for line in f.readlines()]
     car_data = None
-    for link in links:
+    for link in tqdm(links):
         if not link.startswith("https://www.dongchedi.com/"):
             continue
         req = requests.get(link, headers={'user-agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34'})
