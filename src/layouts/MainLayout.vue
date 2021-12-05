@@ -161,7 +161,11 @@
                 <q-list bordered separator></q-list>
                 <q-item v-for="info in infos" :key="info['car_name']">
                   <q-item-section>
-                    <q-item-label> {{ info["car_name"] }}</q-item-label>
+                    <q-item-label>
+                      {{
+                        `${info["car_year"]} ${info["car_name"]}`
+                      }}</q-item-label
+                    >
                   </q-item-section>
 
                   <q-item-section side>
@@ -180,7 +184,7 @@
 </template>
 
 <script>
-import { defineComponent, reactive, onMounted } from "vue";
+import { defineComponent, reactive, ref } from "vue";
 import { scroll, useQuasar } from "quasar";
 const { getScrollTarget, setVerticalScrollPosition } = scroll;
 
@@ -194,28 +198,20 @@ export default defineComponent({
   setup() {
     const $q = useQuasar();
     $q.loading.show({
+      message: "加载汽车数据中...",
       delay: 400, // ms
     });
-    onMounted(async () => {
-      const response = await fetch("/assets/car_info.json");
-      if (response.ok) {
-        const load_data = async () => {
-          const car_info = await response.json();
-          data.car_info = new dfd.DataFrame(car_info);
-          for (const column_name of data.car_info.columns) {
-            const cur_unique_series = data.car_info[column_name].unique();
-            property_value_set[column_name] = cur_unique_series.to_json({
-              download: false,
-            })[0];
-          }
-          applyFilter();
-          $q.loading.hide();
-        };
-        load_data();
-      } else {
-        console.log(response);
-        $q.loading.hide();
-      }
+    const worker = new Worker("/worker/load_json.js");
+    var car_info = null;
+    worker.onmessage = (e) => {
+      car_info = new dfd.DataFrame(e.data.car_info);
+      property_value_set.value = e.data.property_value_set;
+      applyFilter();
+      $q.loading.hide();
+    };
+
+    worker.postMessage({
+      json_link: "/assets/car_info.json",
     });
     property_group["基本信息"]["car_year"] = { text: "年份" };
     property_group["基本信息"]["dealer_price"] = { text: "经销商报价" };
@@ -226,13 +222,14 @@ export default defineComponent({
     // delete property_group_refined["变速箱"];
     // delete property_group_refined["电动机"];
 
+    // const car_info = ref({});
     const data = reactive({
       property_group_refined: property_group_refined,
       car_info_filtered: {},
       series_num: 0,
       car_num: 0,
     });
-    const property_value_set = reactive({});
+    const property_value_set = ref({});
 
     let property_filter_tmp = {};
     for (let group_name in property_group) {
@@ -355,7 +352,7 @@ export default defineComponent({
     };
 
     const applyFilter = () => {
-      let car_info_filter_df = data.car_info;
+      let car_info_filter_df = car_info;
       if (Object.keys(property_filter_list).length > 0) {
         Object.keys(property_filter_list).forEach((key) => {
           if (car_info_filter_df.size == 0) return;
@@ -406,6 +403,7 @@ export default defineComponent({
       }
       const car_info_filter_col_name = [
         "series_name",
+        "car_year",
         "car_name",
         "dealer_price",
       ];
@@ -421,8 +419,9 @@ export default defineComponent({
         const tmp = [];
         car_info_filter_col_dict[series_name].forEach((ele) => {
           tmp.push({
-            car_name: ele[1],
-            dealer_price: ele[2],
+            car_year: ele[1],
+            car_name: ele[2],
+            dealer_price: ele[3],
           });
         });
         tmp_car_info_filtered[series_name] = tmp;
@@ -433,6 +432,7 @@ export default defineComponent({
     };
     return {
       data,
+      // car_info,
       property_filter,
       property_filter_list,
       property_filter_display,

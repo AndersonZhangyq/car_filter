@@ -1,9 +1,9 @@
-import * as dfd from "danfojs";
+importScripts("https://cdn.jsdelivr.net/npm/danfojs@0.3.3/lib/bundle.min.js");
 
-self.addEventListener('message', async function (MessageEvent) {
+self.addEventListener('message', async function (event) {
     // Contains the sum of the numbers in the given array5
-    console.log(MessageEvent);
-    const response = await fetch(MessageEvent.data.json_link);
+    console.log(event);
+    const response = await fetch(event.data.json_link);
     console.log(response);
     if (response.ok) {
         const property_value_set = {};
@@ -15,16 +15,13 @@ self.addEventListener('message', async function (MessageEvent) {
                 download: false,
             })[0];
         }
+
+        self.postMessage({
+            car_info: car_info,
+            property_value_set: property_value_set,
+
+        })
     } else {
         console.log(response);
     }
-
-    self.postMessage({
-        "result": {
-            car_info: car_info_df,
-            property_value_set: property_value_set,
-        }
-    })
-
-    console.log(MessageEvent);
 }, false);

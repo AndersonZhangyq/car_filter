@@ -1,0 +1,5 @@
+data/car_data.json filter=lfs diff=lfs merge=lfs -text
+data/car_info.json filter=lfs diff=lfs merge=lfs -text
+public/assets/car_info.json filter=lfs diff=lfs merge=lfs -text
+dist/spa/assets/car_info.json filter=lfs diff=lfs merge=lfs -text
+assets/car_info.json filter=lfs diff=lfs merge=lfs -text
