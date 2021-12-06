@@ -201,7 +201,8 @@ export default defineComponent({
       message: "加载汽车数据中...",
       delay: 400, // ms
     });
-    const worker = new Worker("/worker/load_json.js");
+    console.log(import.meta.url)
+    const worker = new Worker(new URL("../worker/load_json.js", import.meta.url), {type: 'module'});
     var car_info = null;
     worker.onmessage = (e) => {
       car_info = new dfd.DataFrame(e.data.car_info);
@@ -211,7 +212,7 @@ export default defineComponent({
     };
 
     worker.postMessage({
-      json_link: "/assets/car_info.json",
+      json_links: ["/assets/car_info_1.json", "/assets/car_info_2.json", "/assets/car_info_3.json"],
     });
     property_group["基本信息"]["car_year"] = { text: "年份" };
     property_group["基本信息"]["dealer_price"] = { text: "经销商报价" };
