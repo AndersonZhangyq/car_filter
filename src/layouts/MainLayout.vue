@@ -159,9 +159,9 @@
               </q-card-section>
               <q-card-section>
                 <q-list bordered separator></q-list>
-                <q-item v-for="info in infos" :key="info['car_name']">
+                <q-item v-for="info in infos" :key="info['car_id']">
                   <q-item-section>
-                    <q-item-label>
+                    <q-item-label :title="info['car_id']">
                       {{
                         `${info["car_year"]} ${info["car_name"]}`
                       }}</q-item-label
@@ -331,9 +331,14 @@ export default defineComponent({
             property_filter[value["group_name"]][value["key"]].splice(idx, 1);
           }
         } else {
-          const idx =
-            property_filter[value["group_name"]][value["parent"]].indexOf(key);
-          property_filter[value["group_name"]][value["parent"]].splice(idx, 1);
+          let length = property_filter[value["group_name"]][value["parent"]].length;
+          for (let i = 0; i < length; ++i) {
+            const ele = property_filter[value["group_name"]][value["parent"]][i];
+            if (ele['option'] === key) {
+              property_filter[value["group_name"]][value["parent"]].splice(i, 1);
+              break;
+            }
+          }
         }
       } else {
         delete property_filter_list[key];
@@ -407,6 +412,7 @@ export default defineComponent({
         "car_year",
         "car_name",
         "dealer_price",
+        "car_id"
       ];
       car_info_filter_df = car_info_filter_df.loc({
         columns: car_info_filter_col_name,
@@ -423,6 +429,7 @@ export default defineComponent({
             car_year: ele[1],
             car_name: ele[2],
             dealer_price: ele[3],
+            car_id: ele[4]
           });
         });
         tmp_car_info_filtered[series_name] = tmp;
