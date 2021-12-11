@@ -49,7 +49,7 @@
               <div class="col-10 row q-col-gutter-xs items-center">
                 <template v-for="(prop, prop_key) in props" :key="prop_key">
                   <template v-if="'sub_list' in prop">
-                    <div class="col-md-2 col-sm-4">
+                    <div class="col-6 col-md-2">
                       <q-select
                         :filled="
                           property_filter[group_name][prop_key].length !== 0
@@ -83,7 +83,7 @@
                       />
                     </div>
                   </template>
-                  <div v-else class="col-md-2 col-sm-4" :key="prop_key">
+                  <div v-else class="col-6 col-md-2" :key="prop_key">
                     <template v-if="group_name.endsWith('-tf')">
                       <q-checkbox
                         v-model="property_filter[group_name][prop_key]"
@@ -147,19 +147,23 @@
         </div>
         <div id="carInfo" class="row q-col-gutter-md items-stretch">
           <div
-            class="col-md-3 col-sm-6"
-            v-for="(infos, series_name) in data.car_info_filtered"
-            :key="series_name"
+            class="col-12 col-md-3"
+            v-for="(value, series_id) in data.car_info_filtered"
+            :key="series_id"
+            :style="{display: value['hidden'] ? 'none' : 'auto'}"
           >
             <q-card class="full-height">
-              <q-card-section>
-                <div class="text-h6 text-center">
-                  {{ series_name }}
+              <q-card-section class="row items-center">
+                <div class="col-8 offset-2 text-h6 text-center">
+                  {{ value['series_name'] }}
+                </div>
+                <div class="col-2 text-right">
+                  <q-btn flat round color="red" icon="delete" @click="value['hidden'] = true"/>
                 </div>
               </q-card-section>
               <q-card-section>
                 <q-list bordered separator></q-list>
-                <q-item v-for="info in infos" :key="info['car_id']">
+                <q-item v-for="info in value['car_list']" :key="info['car_id']">
                   <q-item-section>
                     <q-item-label :title="info['car_id']">
                       {{
@@ -412,27 +416,31 @@ export default defineComponent({
         "car_year",
         "car_name",
         "dealer_price",
-        "car_id"
+        "car_id",
+        "series_id"
       ];
       car_info_filter_df = car_info_filter_df.loc({
         columns: car_info_filter_col_name,
       });
       const car_info_filter_groupBy = car_info_filter_df.groupby([
-        "series_name",
+        "series_id",
       ]);
       const car_info_filter_col_dict = car_info_filter_groupBy.col_dict;
       let tmp_car_info_filtered = {};
-      for (const series_name in car_info_filter_col_dict) {
+      for (const series_id in car_info_filter_col_dict) {
         const tmp = [];
-        car_info_filter_col_dict[series_name].forEach((ele) => {
+        let series_name = null;
+        car_info_filter_col_dict[series_id].forEach((ele) => {
+          if (series_name === null)
+            series_name = ele[0];
           tmp.push({
             car_year: ele[1],
             car_name: ele[2],
             dealer_price: ele[3],
-            car_id: ele[4]
+            car_id: ele[4],
           });
         });
-        tmp_car_info_filtered[series_name] = tmp;
+        tmp_car_info_filtered[series_id] = { series_name: series_name, car_list: tmp, hidden: false};
       }
       data["car_info_filtered"] = tmp_car_info_filtered;
       data["series_num"] = Object.keys(tmp_car_info_filtered).length;

@@ -8,7 +8,8 @@
   "scripts": {
     "lint": "eslint --ext .js,.vue ./",
     "test": "echo \"No test specified\" && exit 0",
-    "deploy": "node gh-pages-deploy.js"
+    "deploy": "node gh-pages-deploy.js",
+    "build": "quasar build && mkdir -p dist/spa/js/js && cp dist/spa/js/vendor* dist/spa/js/js"
   },
   "dependencies": {
     "@quasar/extras": "^1.0.0",
