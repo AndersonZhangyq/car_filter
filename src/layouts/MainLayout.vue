@@ -1,7 +1,15 @@
 <template>
-  <q-layout view="lHh Lpr lFf">
+  <q-layout view="hHh lpR lfr">
     <q-header class="bg-blue-grey-1" id="head">
       <q-toolbar class="q-pa-md">
+        <q-btn
+          flat
+          @click="drawer_left = !drawer_left"
+          round
+          dense
+          color="primary"
+          icon="menu"
+        />
         <div class="column offset-2 col-10">
           <div class="row q-col-gutter-xs">
             <q-chip
@@ -30,6 +38,24 @@
         </div>
       </q-toolbar>
     </q-header>
+    <q-drawer v-model="drawer_left" elevated overlay>
+      <q-scroll-area class="fit">
+        <div class="q-pa-sm">
+          <q-list separator padding>
+            <q-item-label header> Click to restore the item </q-item-label>
+            <q-item
+              clickable
+              v-ripple
+              v-for="(series_name, series_id) in hidden_series"
+              :key="series_id"
+              @click="delete hidden_series[series_id]"
+            >
+              <q-item-section> {{ series_name }}</q-item-section>
+            </q-item>
+          </q-list>
+        </div>
+      </q-scroll-area>
+    </q-drawer>
     <q-page-container>
       <div class="q-pa-md">
         <div class="row">
@@ -102,8 +128,7 @@
                     <template v-else>
                       <q-input
                         v-if="prop_key == 'dealer_price'"
-                        type="number"
-                        v-model.number="property_filter[group_name][prop_key]"
+                        v-model="property_filter[group_name][prop_key]"
                         label="经销商报价（万）"
                         @blur="
                           updatePropertyFilterList(
@@ -147,18 +172,27 @@
         </div>
         <div id="carInfo" class="row q-col-gutter-md items-stretch">
           <div
-            class="col-12 col-md-3"
+            :class="{
+              'col-12': true,
+              'col-md-3': true,
+            }"
+            v-show="hidden_series[series_id] === undefined"
             v-for="(value, series_id) in data.car_info_filtered"
             :key="series_id"
-            :style="{display: value['hidden'] ? 'none' : 'auto'}"
           >
             <q-card class="full-height">
               <q-card-section class="row items-center">
                 <div class="col-8 offset-2 text-h6 text-center">
-                  {{ value['series_name'] }}
+                  {{ value["series_name"] }}
                 </div>
                 <div class="col-2 text-right">
-                  <q-btn flat round color="red" icon="delete" @click="value['hidden'] = true"/>
+                  <q-btn
+                    flat
+                    round
+                    color="red"
+                    icon="delete"
+                    @click="hidden_series[series_id] = value['series_name']"
+                  />
                 </div>
               </q-card-section>
               <q-card-section>
@@ -205,8 +239,11 @@ export default defineComponent({
       message: "加载汽车数据中...",
       delay: 400, // ms
     });
-    console.log(import.meta.url)
-    const worker = new Worker(new URL("../worker/load_json.js", import.meta.url), {type: 'module'});
+    console.log(import.meta.url);
+    const worker = new Worker(
+      new URL("../worker/load_json.js", import.meta.url),
+      { type: "module" }
+    );
     var car_info = null;
     worker.onmessage = (e) => {
       car_info = new dfd.DataFrame(e.data.car_info);
@@ -216,7 +253,11 @@ export default defineComponent({
     };
 
     worker.postMessage({
-      json_links: ["/assets/car_info_1.json", "/assets/car_info_2.json", "/assets/car_info_3.json"],
+      json_links: [
+        "/assets/car_info_1.json",
+        "/assets/car_info_2.json",
+        "/assets/car_info_3.json",
+      ],
     });
     property_group["基本信息"]["car_year"] = { text: "年份" };
     property_group["基本信息"]["dealer_price"] = { text: "经销商报价" };
@@ -234,6 +275,7 @@ export default defineComponent({
       series_num: 0,
       car_num: 0,
     });
+    const hidden_series = ref({});
     const property_value_set = ref({});
 
     let property_filter_tmp = {};
@@ -267,7 +309,16 @@ export default defineComponent({
       text,
       group_name
     ) => {
-      if (typeof value === "boolean") {
+      if (key === "dealer_price") {
+        property_filter_list[key] = { isRawValue: isRawValue, value: value };
+        property_filter_display[key] = {
+          text: value.includes("-")
+            ? `${text}: ${value} 万`
+            : `${text}: ${value} 万以下`,
+          isRawValue: isRawValue,
+          group_name: group_name,
+        };
+      } else if (typeof value === "boolean") {
         if (value === true) {
           property_filter_list[key] = true;
           property_filter_display[key] = {
@@ -305,13 +356,6 @@ export default defineComponent({
             }
           }
         }
-      } else if (typeof value === "number") {
-        property_filter_list[key] = { isRawValue: isRawValue, value: value };
-        property_filter_display[key] = {
-          text: `${text}: ${value} 万以下`,
-          isRawValue: isRawValue,
-          group_name: group_name,
-        };
       }
       applyFilter();
     };
@@ -335,11 +379,16 @@ export default defineComponent({
             property_filter[value["group_name"]][value["key"]].splice(idx, 1);
           }
         } else {
-          let length = property_filter[value["group_name"]][value["parent"]].length;
+          let length =
+            property_filter[value["group_name"]][value["parent"]].length;
           for (let i = 0; i < length; ++i) {
-            const ele = property_filter[value["group_name"]][value["parent"]][i];
-            if (ele['option'] === key) {
-              property_filter[value["group_name"]][value["parent"]].splice(i, 1);
+            const ele =
+              property_filter[value["group_name"]][value["parent"]][i];
+            if (ele["option"] === key) {
+              property_filter[value["group_name"]][value["parent"]].splice(
+                i,
+                1
+              );
               break;
             }
           }
@@ -374,9 +423,25 @@ export default defineComponent({
             });
           } else if (value.isRawValue) {
             if (key === "dealer_price") {
-              car_info_filter_df = car_info_filter_df.iloc({
-                rows: car_info_filter_df["dealer_price_value"].le(value.value),
-              });
+              if (value.value.includes("-")) {
+                const numbers = value.value.split("-");
+                const low = parseFloat(numbers[0]);
+                const high = parseFloat(numbers[1]);
+                car_info_filter_df = car_info_filter_df.iloc({
+                  rows: car_info_filter_df["dealer_price_value"].le(high),
+                });
+                if (car_info_filter_df.size == 0) return;
+                car_info_filter_df.reset_index({ inplace: true });
+                car_info_filter_df = car_info_filter_df.iloc({
+                  rows: car_info_filter_df["dealer_price_value"].ge(low),
+                });
+              } else {
+                car_info_filter_df = car_info_filter_df.iloc({
+                  rows: car_info_filter_df["dealer_price_value"].le(
+                    value.value
+                  ),
+                });
+              }
             } else {
               let index_series = null;
               for (const v of value.value) {
@@ -417,22 +482,19 @@ export default defineComponent({
         "car_name",
         "dealer_price",
         "car_id",
-        "series_id"
+        "series_id",
       ];
       car_info_filter_df = car_info_filter_df.loc({
         columns: car_info_filter_col_name,
       });
-      const car_info_filter_groupBy = car_info_filter_df.groupby([
-        "series_id",
-      ]);
+      const car_info_filter_groupBy = car_info_filter_df.groupby(["series_id"]);
       const car_info_filter_col_dict = car_info_filter_groupBy.col_dict;
       let tmp_car_info_filtered = {};
       for (const series_id in car_info_filter_col_dict) {
         const tmp = [];
         let series_name = null;
         car_info_filter_col_dict[series_id].forEach((ele) => {
-          if (series_name === null)
-            series_name = ele[0];
+          if (series_name === null) series_name = ele[0];
           tmp.push({
             car_year: ele[1],
             car_name: ele[2],
@@ -440,15 +502,20 @@ export default defineComponent({
             car_id: ele[4],
           });
         });
-        tmp_car_info_filtered[series_id] = { series_name: series_name, car_list: tmp, hidden: false};
+        tmp_car_info_filtered[series_id] = {
+          series_name: series_name,
+          car_list: tmp,
+        };
       }
       data["car_info_filtered"] = tmp_car_info_filtered;
       data["series_num"] = Object.keys(tmp_car_info_filtered).length;
       data["car_num"] = car_info_filter_groupBy.data.length;
     };
+    const drawer_left = ref(false);
     return {
       data,
-      // car_info,
+      drawer_left,
+      hidden_series,
       property_filter,
       property_filter_list,
       property_filter_display,
