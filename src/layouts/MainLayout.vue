@@ -453,7 +453,7 @@ export default defineComponent({
               } else {
                 car_info_filter_df = car_info_filter_df.iloc({
                   rows: car_info_filter_df["dealer_price_value"].le(
-                    value.value
+                    parseFloat(value.value)
                   ),
                 });
               }
