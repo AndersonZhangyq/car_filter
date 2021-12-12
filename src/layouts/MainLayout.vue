@@ -58,6 +58,7 @@
     </q-drawer>
     <q-page-container>
       <div class="q-pa-md">
+        <!-- property filter start -->
         <div class="row">
           <div class="column">
             <div
@@ -170,6 +171,8 @@
             </div>
           </div>
         </div>
+        <!-- property filter end -->
+        <!-- car information start -->
         <div id="carInfo" class="row q-col-gutter-md items-stretch">
           <div
             :class="{
@@ -195,6 +198,10 @@
                   />
                 </div>
               </q-card-section>
+              <img
+                :src="data.cover_urls[series_id]"
+                :style="{ width: '70%', margin: 'auto' }"
+              />
               <q-card-section>
                 <q-list bordered separator></q-list>
                 <q-item v-for="info in value['car_list']" :key="info['car_id']">
@@ -216,6 +223,7 @@
             </q-card>
           </div>
         </div>
+        <!-- car information end -->
       </div>
     </q-page-container>
   </q-layout>
@@ -229,6 +237,7 @@ const { getScrollTarget, setVerticalScrollPosition } = scroll;
 import * as dfd from "danfojs";
 
 import property_group from "../../public/assets/property_group.json";
+import cover_urls from "../../public/assets/cover_urls.json";
 
 export default defineComponent({
   name: "MainLayout",
@@ -252,25 +261,31 @@ export default defineComponent({
       $q.loading.hide();
     };
 
-    worker.postMessage({
-      json_links: [
-        "/assets/car_info_1.json",
-        "/assets/car_info_2.json",
-        "/assets/car_info_3.json",
-      ],
-    });
+    if (
+      window.webpackHotUpdate ||
+      (process.env.NODE_ENV !== "production" &&
+        process.env.NODE_ENV !== "test" &&
+        typeof console !== "undefined")
+    ) {
+      worker.postMessage({
+        json_links: ["/assets/car_info_1.json"],
+      });
+    } else {
+      worker.postMessage({
+        json_links: [
+          "/assets/car_info_1.json",
+          "/assets/car_info_2.json",
+          "/assets/car_info_3.json",
+        ],
+      });
+    }
     property_group["基本信息"]["car_year"] = { text: "年份" };
     property_group["基本信息"]["dealer_price"] = { text: "经销商报价" };
     let property_group_refined = JSON.parse(JSON.stringify(property_group));
-    // refind property_group
-    // delete property_group_refined["基本信息"];
-    // delete property_group_refined["车身"];
-    // delete property_group_refined["变速箱"];
-    // delete property_group_refined["电动机"];
 
-    // const car_info = ref({});
     const data = reactive({
       property_group_refined: property_group_refined,
+      cover_urls: cover_urls,
       car_info_filtered: {},
       series_num: 0,
       car_num: 0,

@@ -15,7 +15,8 @@ def get_data_from_links():
         req = requests.get(
             link,
             headers={
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34"
+                "user-agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34"
             },
         )
         if req.ok:
@@ -45,6 +46,7 @@ def get_data_by_condition(price_range: int or list or None):
             data["price"] = f"0,{price_range}"
     i = 0
     car_ids = []
+    car_id_cover_url = {}
     pbar = None
     while True:
         data["offset"] = i
@@ -52,7 +54,8 @@ def get_data_by_condition(price_range: int or list or None):
             url,
             data=data,
             headers={
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34"
+                "user-agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34"
             },
         )
         if req.ok:
@@ -60,17 +63,26 @@ def get_data_by_condition(price_range: int or list or None):
         else:
             print(req.text)
             continue
-        car_ids.extend(list(chain(*[item['car_ids'] for item in content['data']['series']])))
+        car_ids.extend(
+            list(
+                chain(*[item['car_ids']
+                        for item in content['data']['series']])))
+        car_id_cover_url.update({
+            item['id']: item['cover_url']
+            for item in content['data']['series']
+        })
         i += 1
         if pbar is None:
             pbar = tqdm(total=content['data']['series_count'])
         pbar.update(len(content['data']['series']))
-        time.sleep(3)
+        time.sleep(1)
         if (len(content['data']['series']) < 30):
             break
+    with open("cover_urls.json", "w+", encoding='utf8') as f:
+        json.dump(car_id_cover_url, f, ensure_ascii=False)
     tail = r"&city_name=%E4%B8%8A%E6%B5%B7&version_code=444"
     car_data = None
-    chunkded_car_ids = [car_ids[i : i + 10] for i in range(0, len(car_ids), 10)]
+    chunkded_car_ids = [car_ids[i:i + 10] for i in range(0, len(car_ids), 10)]
     if len(chunkded_car_ids) > 1 and len(chunkded_car_ids[-1]) < 10:
         chunkded_car_ids[-2].extend(chunkded_car_ids[-1])
         del chunkded_car_ids[-1]
@@ -79,7 +91,8 @@ def get_data_by_condition(price_range: int or list or None):
         req = requests.get(
             link,
             headers={
-                "user-agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34"
+                "user-agent":
+                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34"
             },
         )
         if req.ok:
@@ -89,7 +102,7 @@ def get_data_by_condition(price_range: int or list or None):
         else:
             car_data["car_info"].extend(content["data"]["car_info"])
             car_data["properties"].extend(content["data"]["properties"])
-        time.sleep(3)
+        time.sleep(5)
     with open("car_data.json", "w+", encoding="utf8") as f:
         json.dump(car_data, f, ensure_ascii=False)
 
