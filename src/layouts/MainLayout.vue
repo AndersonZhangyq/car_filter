@@ -207,10 +207,12 @@
                 <q-item v-for="info in value['car_list']" :key="info['car_id']">
                   <q-item-section>
                     <q-item-label :title="info['car_id']">
-                      {{
-                        `${info["car_year"]} ${info["car_name"]}`
-                      }}</q-item-label
-                    >
+                      <q-checkbox
+                        v-model="selected_car_ids"
+                        :val="info['car_id']"
+                        :label="`${info['car_year']} ${info['car_name']}`"
+                      />
+                    </q-item-label>
                   </q-item-section>
 
                   <q-item-section side>
@@ -224,6 +226,19 @@
           </div>
         </div>
         <!-- car information end -->
+        <q-page-sticky position="bottom-right" :offset="[18, 18]">
+          <q-btn
+            fab
+            icon="search"
+            color="primary"
+            v-show="selected_car_ids.length != 0"
+            type="a"
+            target="_blank"
+            :href="`https://www.dongchedi.com/auto/auto_compare/params?carIds=${selected_car_ids.join(
+              ','
+            )}`"
+          />
+        </q-page-sticky>
       </div>
     </q-page-container>
   </q-layout>
@@ -290,6 +305,7 @@ export default defineComponent({
       series_num: 0,
       car_num: 0,
     });
+    const selected_car_ids = ref([]);
     const hidden_series = ref({});
     const property_value_set = ref({});
 
@@ -525,11 +541,13 @@ export default defineComponent({
       data["car_info_filtered"] = tmp_car_info_filtered;
       data["series_num"] = Object.keys(tmp_car_info_filtered).length;
       data["car_num"] = car_info_filter_groupBy.data.length;
+      selected_car_ids.value = [];
     };
     const drawer_left = ref(false);
     return {
       data,
       drawer_left,
+      selected_car_ids,
       hidden_series,
       property_filter,
       property_filter_list,
