@@ -75,7 +75,7 @@ def get_data_by_condition(price_range: int or list or None):
         if pbar is None:
             pbar = tqdm(total=content['data']['series_count'])
         pbar.update(len(content['data']['series']))
-        time.sleep(1)
+        time.sleep(5)
         if (len(content['data']['series']) < 30):
             break
     with open("cover_urls.json", "w+", encoding='utf8') as f:

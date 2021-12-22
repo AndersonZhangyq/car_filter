@@ -90,8 +90,15 @@ if __name__ == "__main__":
                 car_info[idx][key] = car_info[idx][key]["value"]
     df = pd.DataFrame(car_info)
     df = df.fillna("-")
-    with open("car_info.json", "w+", encoding="utf8") as f:
-        df.to_json(f, force_ascii=False, orient="records")
+    length = df.shape[0]
+    indices = list(range(0, length, 3000))
+    indices.append(length - 1)
+    if indices[-1] - indices[-2] < 1000:
+        indices.pop(-2)
+    for i in range(1, len(indices)):
+        tmp = df.iloc[indices[i - 1]:indices[i]]
+        with open(f"../public/assets/car_info_{i}.json", "w+", encoding="utf8") as f:
+            tmp.to_json(f, force_ascii=False, orient="records")
     print("writing excel")
     for idx, item in enumerate(car_info):
         car_info[idx] = {
