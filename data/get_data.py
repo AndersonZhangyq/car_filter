@@ -75,7 +75,7 @@ def get_data_by_condition(price_range: int or list or None):
         })
         i += 1
         if pbar is None:
-            pbar = tqdm(total=content['data']['series_count'])
+            pbar = tqdm(total=content['data']['series_count'], position=0)
         pbar.update(len(content['data']['series']))
         time.sleep(5 + random.randint(1, 5))
         if (len(content['data']['series']) < 30):
@@ -88,15 +88,22 @@ def get_data_by_condition(price_range: int or list or None):
     if len(chunkded_car_ids) > 1 and len(chunkded_car_ids[-1]) < 10:
         chunkded_car_ids[-2].extend(chunkded_car_ids[-1])
         del chunkded_car_ids[-1]
-    for chunk in tqdm(chunkded_car_ids):
+    for chunk in tqdm(chunkded_car_ids, position=2):
         link = f"https://www.dongchedi.com/motor/car_page/v4/get_entity_json/?car_id_list={'%2C'.join([str(ele) for ele in chunk])}{tail}"
-        req = requests.get(
-            link,
-            headers={
-                "user-agent":
-                "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34"
-            },
-        )
+        while True:
+            try:
+                req = requests.get(
+                    link,
+                    headers={
+                        "user-agent":
+                        "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/96.0.4664.55 Safari/537.36 Edg/96.0.1054.34"
+                    },
+                )
+                if not req.ok:
+                    continue
+                break
+            except:
+                sleep(10 + random.randint(1, 5))
         if req.ok:
             content = req.json()
         if car_data is None:
