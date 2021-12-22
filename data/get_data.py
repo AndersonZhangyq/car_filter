@@ -3,6 +3,7 @@ import json
 from tqdm import tqdm
 import time
 from itertools import chain
+import random
 
 
 def get_data_from_links():
@@ -26,7 +27,7 @@ def get_data_from_links():
         else:
             car_data["car_info"].extend(content["data"]["car_info"])
             car_data["properties"].extend(content["data"]["properties"])
-        time.sleep(5)
+        time.sleep(5 + random.randint(1, 5))
     with open("car_data.json", "w+", encoding="utf8") as f:
         json.dump(car_data, f, ensure_ascii=False)
 
@@ -62,6 +63,7 @@ def get_data_by_condition(price_range: int or list or None):
             content = req.json()
         else:
             print(req.text)
+            time.sleep(5 + random.randint(1, 5))
             continue
         car_ids.extend(
             list(
@@ -75,7 +77,7 @@ def get_data_by_condition(price_range: int or list or None):
         if pbar is None:
             pbar = tqdm(total=content['data']['series_count'])
         pbar.update(len(content['data']['series']))
-        time.sleep(5)
+        time.sleep(5 + random.randint(1, 5))
         if (len(content['data']['series']) < 30):
             break
     with open("cover_urls.json", "w+", encoding='utf8') as f:
@@ -102,7 +104,7 @@ def get_data_by_condition(price_range: int or list or None):
         else:
             car_data["car_info"].extend(content["data"]["car_info"])
             car_data["properties"].extend(content["data"]["properties"])
-        time.sleep(5)
+        time.sleep(5 + random.randint(1, 5))
     with open("car_data.json", "w+", encoding="utf8") as f:
         json.dump(car_data, f, ensure_ascii=False)
 
