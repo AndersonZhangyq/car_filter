@@ -74,7 +74,7 @@ if __name__ == "__main__":
                 prop_keys.pop(i)
             else:
                 i += 1
-    with open("property_group.json", "w+", encoding="utf8") as f:
+    with open("../public/assets/property_group.json", "w+", encoding="utf8") as f:
         json.dump(property_group, f, ensure_ascii=False)
     print("loading car info")
     car_info = car_data["car_info"]
@@ -99,12 +99,12 @@ if __name__ == "__main__":
         tmp = df.iloc[indices[i - 1]:indices[i]]
         with open(f"../public/assets/car_info_{i}.json", "w+", encoding="utf8") as f:
             tmp.to_json(f, force_ascii=False, orient="records")
-    print("writing excel")
-    for idx, item in enumerate(car_info):
-        car_info[idx] = {
-            property_key_text[k] if k in property_key_text else k: v
-            for k, v in car_info[idx].items()
-        }
-    df = pd.DataFrame(car_info)
-    df = df.set_index("car_id")
-    df.to_excel("car_info.xlsx")
+    # print("writing excel")
+    # for idx, item in enumerate(car_info):
+    #     car_info[idx] = {
+    #         property_key_text[k] if k in property_key_text else k: v
+    #         for k, v in car_info[idx].items()
+    #     }
+    # df = pd.DataFrame(car_info)
+    # df = df.set_index("car_id")
+    # df.to_excel("car_info.xlsx")
