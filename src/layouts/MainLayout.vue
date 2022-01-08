@@ -183,46 +183,51 @@
             v-for="(value, series_id) in data.car_info_filtered"
             :key="series_id"
           >
-            <q-card class="full-height">
-              <q-card-section class="row items-center">
-                <div class="col-8 offset-2 text-h6 text-center">
-                  {{ value["series_name"] }}
-                </div>
-                <div class="col-2 text-right">
-                  <q-btn
-                    flat
-                    round
-                    color="red"
-                    icon="delete"
-                    @click="hidden_series[series_id] = value['series_name']"
-                  />
-                </div>
-              </q-card-section>
-              <img
-                :src="data.cover_urls[series_id]"
-                :style="{ width: '70%', margin: 'auto' }"
-              />
-              <q-card-section>
-                <q-list bordered separator></q-list>
-                <q-item v-for="info in value['car_list']" :key="info['car_id']">
-                  <q-item-section>
-                    <q-item-label :title="info['car_id']">
-                      <q-checkbox
-                        v-model="selected_car_ids"
-                        :val="info['car_id']"
-                        :label="`${info['car_year']} ${info['car_name']}`"
-                      />
-                    </q-item-label>
-                  </q-item-section>
+            <q-intersection once :threshold="0.3">
+              <q-card class="full-height">
+                <q-card-section class="row items-center">
+                  <div class="col-8 offset-2 text-h6 text-center">
+                    {{ value["series_name"] }}
+                  </div>
+                  <div class="col-2 text-right">
+                    <q-btn
+                      flat
+                      round
+                      color="red"
+                      icon="delete"
+                      @click="hidden_series[series_id] = value['series_name']"
+                    />
+                  </div>
+                </q-card-section>
+                <img
+                  :src="data.cover_urls[series_id]"
+                  :style="{ width: '70%', margin: 'auto' }"
+                />
+                <q-card-section>
+                  <q-list bordered separator></q-list>
+                  <q-item
+                    v-for="info in value['car_list']"
+                    :key="info['car_id']"
+                  >
+                    <q-item-section>
+                      <q-item-label :title="info['car_id']">
+                        <q-checkbox
+                          v-model="selected_car_ids"
+                          :val="info['car_id']"
+                          :label="`${info['car_year']} ${info['car_name']}`"
+                        />
+                      </q-item-label>
+                    </q-item-section>
 
-                  <q-item-section side>
-                    <q-item-label caption>{{
-                      info["dealer_price"]
-                    }}</q-item-label>
-                  </q-item-section>
-                </q-item>
-              </q-card-section>
-            </q-card>
+                    <q-item-section side>
+                      <q-item-label caption>{{
+                        info["dealer_price"]
+                      }}</q-item-label>
+                    </q-item-section>
+                  </q-item>
+                </q-card-section>
+              </q-card>
+            </q-intersection>
           </div>
         </div>
         <!-- car information end -->
