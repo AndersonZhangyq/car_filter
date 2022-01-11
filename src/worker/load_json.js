@@ -12,7 +12,7 @@ self.addEventListener('message', async function (event) {
   const property_value_set = {};
   const car_info_df = new dfd.DataFrame(car_info);
   for (const column_name of car_info_df.columns) {
-    const cur_unique_series = car_info_df[column_name].unique();
+    const cur_unique_series = car_info_df[column_name].unique().sort_values();
     property_value_set[column_name] = cur_unique_series.to_json({
       download: false,
     })[0];
