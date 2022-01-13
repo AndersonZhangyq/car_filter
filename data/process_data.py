@@ -1,9 +1,12 @@
 import json
 from collections import defaultdict
 import pandas as pd
+from pathlib import Path
+
+script_root = Path(__file__).parent
 
 if __name__ == "__main__":
-    with open("car_data.json", encoding="utf8") as f:
+    with open(script_root / "car_data.json", encoding="utf8") as f:
         car_data = json.load(f)
     print("loading properties")
     properties = car_data["properties"]
@@ -74,7 +77,7 @@ if __name__ == "__main__":
                 prop_keys.pop(i)
             else:
                 i += 1
-    with open("../public/assets/property_group.json", "w+", encoding="utf8") as f:
+    with open(script_root / "../public/assets/property_group.json", "w+", encoding="utf8") as f:
         json.dump(property_group, f, ensure_ascii=False)
     print("loading car info")
     car_info = car_data["car_info"]
@@ -97,7 +100,7 @@ if __name__ == "__main__":
         indices.pop(-2)
     for i in range(1, len(indices)):
         tmp = df.iloc[indices[i - 1]:indices[i]]
-        with open(f"../public/assets/car_info_{i}.json", "w+", encoding="utf8") as f:
+        with open(script_root / f"../public/assets/car_info_{i}.json", "w+", encoding="utf8") as f:
             tmp.to_json(f, force_ascii=False, orient="records")
     # print("writing excel")
     # for idx, item in enumerate(car_info):

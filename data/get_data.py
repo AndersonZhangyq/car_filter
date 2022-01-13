@@ -4,10 +4,12 @@ from tqdm import tqdm
 import time
 from itertools import chain
 import random
+from pathlib import Path
 
+script_root = Path(__file__).parent
 
 def get_data_from_links():
-    with open("links.txt", encoding="utf8") as f:
+    with open(script_root / "links.txt", encoding="utf8") as f:
         links = [line.strip() for line in f.readlines()]
     car_data = None
     for link in tqdm(links):
@@ -28,7 +30,7 @@ def get_data_from_links():
             car_data["car_info"].extend(content["data"]["car_info"])
             car_data["properties"].extend(content["data"]["properties"])
         time.sleep(5 + random.randint(1, 5))
-    with open("car_data.json", "w+", encoding="utf8") as f:
+    with open(script_root / "car_data.json", "w+", encoding="utf8") as f:
         json.dump(car_data, f, ensure_ascii=False)
 
 
@@ -80,7 +82,7 @@ def get_data_by_condition(price_range: int or list or None):
         time.sleep(5 + random.randint(1, 5))
         if (len(content['data']['series']) < 30):
             break
-    with open("../public/assets/cover_urls.json", "w+", encoding='utf8') as f:
+    with open(script_root / "../public/assets/cover_urls.json", "w+", encoding='utf8') as f:
         json.dump(car_id_cover_url, f, ensure_ascii=False)
     tail = r"&city_name=%E4%B8%8A%E6%B5%B7&version_code=444"
     car_data = None
@@ -115,7 +117,7 @@ def get_data_by_condition(price_range: int or list or None):
                     print(link)
                     print(content)
                 time.sleep(10 + random.randint(1, 5))
-    with open("car_data.json", "w+", encoding="utf8") as f:
+    with open(script_root / "car_data.json", "w+", encoding="utf8") as f:
         json.dump(car_data, f, ensure_ascii=False)
 
 
