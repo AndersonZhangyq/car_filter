@@ -187,7 +187,7 @@
               <q-card class="full-height">
                 <q-card-section class="row items-center">
                   <div class="col-8 offset-2 text-h6 text-center">
-                    {{ value["series_name"] }}
+                    {{ value["sub_brand_name"] }} - {{ value["series_name"] }}
                   </div>
                   <div class="col-2 text-right">
                     <q-btn
@@ -513,12 +513,13 @@ export default defineComponent({
         return;
       }
       const car_info_filter_col_name = [
-        "series_name",
         "car_year",
         "car_name",
         "dealer_price",
         "car_id",
         "series_id",
+        "series_name",
+        "sub_brand_name",
       ];
       car_info_filter_df = car_info_filter_df.loc({
         columns: car_info_filter_col_name,
@@ -529,16 +530,19 @@ export default defineComponent({
       for (const series_id in car_info_filter_col_dict) {
         const tmp = [];
         let series_name = null;
+        let sub_brand_name = null;
         car_info_filter_col_dict[series_id].forEach((ele) => {
-          if (series_name === null) series_name = ele[0];
+          if (series_name === null) series_name = ele[5];
+          if (sub_brand_name === null) sub_brand_name = ele[6];
           tmp.push({
-            car_year: ele[1],
-            car_name: ele[2],
-            dealer_price: ele[3],
-            car_id: ele[4],
+            car_year: ele[0],
+            car_name: ele[1],
+            dealer_price: ele[2],
+            car_id: ele[3],
           });
         });
         tmp_car_info_filtered[series_id] = {
+          sub_brand_name: sub_brand_name,
           series_name: series_name,
           car_list: tmp,
         };
