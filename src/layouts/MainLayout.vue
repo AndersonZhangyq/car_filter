@@ -48,7 +48,7 @@
               v-ripple
               v-for="(series_name, series_id) in hidden_series"
               :key="series_id"
-              @click="delete hidden_series[series_id]"
+              @click="deleteHiddenSeries(series_id)"
             >
               <q-item-section> {{ series_name }}</q-item-section>
             </q-item>
@@ -59,177 +59,14 @@
     <q-page-container>
       <div class="q-pa-md">
         <!-- property filter start -->
-        <div class="row">
-          <div class="column">
-            <div
-              class="col-auto row items-center q-pb-md"
-              v-for="(props, group_name) in data.property_group_refined"
-              :key="group_name"
-            >
-              <div class="col-2 text-h5">
-                {{
-                  group_name.endsWith("-tf")
-                    ? group_name.slice(0, -3)
-                    : group_name
-                }}
-              </div>
-              <div class="col-10 row q-col-gutter-xs items-center">
-                <template v-for="(prop, prop_key) in props" :key="prop_key">
-                  <template v-if="'sub_list' in prop">
-                    <div class="col-6 col-md-2">
-                      <q-select
-                        :filled="
-                          property_filter[group_name][prop_key].length !== 0
-                        "
-                        :outlined="
-                          property_filter[group_name][prop_key].length === 0
-                        "
-                        v-model="property_filter[group_name][prop_key]"
-                        multiple
-                        :options="
-                          ((prop) => {
-                            return Object.keys(prop).map((key) => {
-                              return {
-                                option: key,
-                                label: prop[key],
-                              };
-                            });
-                          })(prop['sub_list'])
-                        "
-                        :label="prop['text']"
-                        @remove="removePropertyFilter"
-                        @update:model-value="
-                          updatePropertyFilterList(
-                            prop_key,
-                            property_filter[group_name][prop_key],
-                            false,
-                            prop['text'],
-                            group_name
-                          )
-                        "
-                      />
-                    </div>
-                  </template>
-                  <div v-else class="col-6 col-md-2" :key="prop_key">
-                    <template v-if="group_name.endsWith('-tf')">
-                      <q-checkbox
-                        v-model="property_filter[group_name][prop_key]"
-                        :label="prop['text']"
-                        @update:model-value="
-                          updatePropertyFilterList(
-                            prop_key,
-                            property_filter[group_name][prop_key],
-                            false,
-                            prop['text'],
-                            group_name
-                          )
-                        "
-                      />
-                    </template>
-                    <template v-else>
-                      <q-input
-                        v-if="prop_key == 'dealer_price'"
-                        v-model="property_filter[group_name][prop_key]"
-                        label="经销商报价（万）"
-                        @blur="
-                          updatePropertyFilterList(
-                            prop_key,
-                            property_filter[group_name][prop_key],
-                            true,
-                            prop['text'],
-                            group_name
-                          )
-                        "
-                      />
-                      <q-select
-                        v-else
-                        :filled="
-                          property_filter[group_name][prop_key].length !== 0
-                        "
-                        :outlined="
-                          property_filter[group_name][prop_key].length === 0
-                        "
-                        v-model="property_filter[group_name][prop_key]"
-                        multiple
-                        :options="property_value_set[prop_key]"
-                        :label="prop['text']"
-                        @remove="removePropertyFilter"
-                        @update:model-value="
-                          updatePropertyFilterList(
-                            prop_key,
-                            property_filter[group_name][prop_key],
-                            true,
-                            prop['text'],
-                            group_name
-                          )
-                        "
-                      />
-                    </template>
-                  </div>
-                </template>
-              </div>
-            </div>
-          </div>
-        </div>
+        <property-filter
+          ref="propertyFilterRef"
+          :property_value_set="property_value_set"
+          @applyFilter="applyFilter"
+        />
         <!-- property filter end -->
         <!-- car information start -->
-        <div id="carInfo" class="row q-col-gutter-md items-stretch">
-          <div
-            :class="{
-              'col-12': true,
-              'col-md-3': true,
-            }"
-            v-show="hidden_series[series_id] === undefined"
-            v-for="(value, series_id) in data.car_info_filtered"
-            :key="series_id"
-          >
-            <q-intersection once :threshold="0.3">
-              <q-card class="full-height">
-                <q-card-section class="row items-center">
-                  <div class="col-8 offset-2 text-h6 text-center">
-                    {{ value["sub_brand_name"] }} - {{ value["series_name"] }}
-                  </div>
-                  <div class="col-2 text-right">
-                    <q-btn
-                      flat
-                      round
-                      color="red"
-                      icon="delete"
-                      @click="hidden_series[series_id] = value['series_name']"
-                    />
-                  </div>
-                </q-card-section>
-                <img
-                  :src="data.cover_urls[series_id]"
-                  :style="{ width: '70%', margin: 'auto' }"
-                />
-                <q-card-section>
-                  <q-list bordered separator></q-list>
-                  <q-item
-                    v-for="info in value['car_list']"
-                    :key="info['car_id']"
-                  >
-                    <q-item-section>
-                      <q-item-label :title="info['car_id']">
-                        <q-checkbox
-                          v-model="selected_car_ids"
-                          :val="info['car_id']"
-                          :label="`${info['car_year']} ${info['car_name']}`"
-                        />
-                      </q-item-label>
-                    </q-item-section>
-
-                    <q-item-section side>
-                      <q-item-label caption>{{
-                        info["dealer_price"]
-                      }}</q-item-label>
-                    </q-item-section>
-                  </q-item>
-                </q-card-section>
-              </q-card>
-            </q-intersection>
-          </div>
-        </div>
+        <car-info :car_info_filtered="data.car_info_filtered" />
         <!-- car information end -->
         <q-page-sticky position="bottom-right" :offset="[18, 18]">
           <q-btn
@@ -250,19 +87,26 @@
 </template>
 
 <script>
-import { defineComponent, reactive, ref } from "vue";
+import { defineComponent, reactive, ref, computed } from "vue";
 import { scroll, useQuasar } from "quasar";
+import { useStore } from "vuex";
+
 const { getScrollTarget, setVerticalScrollPosition } = scroll;
 
 import * as dfd from "danfojs";
 
-import property_group from "../../public/assets/property_group.json";
-import cover_urls from "../../public/assets/cover_urls.json";
+import CarInfo from "components/CarInfo.vue";
+import PropertyFilter from "components/PropertyFilter.vue";
+
+import outer_detail_type from "../../public/assets/outer_detail_type.json";
 
 export default defineComponent({
   name: "MainLayout",
 
-  setup() {
+  components: { CarInfo, PropertyFilter },
+
+  setup(props) {
+    const store = useStore();
     const $q = useQuasar();
     $q.loading.show({
       message: "加载汽车数据中...",
@@ -274,6 +118,7 @@ export default defineComponent({
       { type: "module" }
     );
     var car_info = null;
+    const property_value_set = ref({});
     worker.onmessage = (e) => {
       car_info = new dfd.DataFrame(e.data.car_info);
       property_value_set.value = e.data.property_value_set;
@@ -288,7 +133,9 @@ export default defineComponent({
         typeof console !== "undefined")
     ) {
       worker.postMessage({
-        json_links: ["/assets/car_info_1.json"],
+        json_links: [
+          // "/assets/car_info_test.json",
+          "/assets/car_info_1.json"],
       });
     } else {
       worker.postMessage({
@@ -299,142 +146,28 @@ export default defineComponent({
         ],
       });
     }
-    property_group["基本信息"]["car_year"] = { text: "年份" };
-    property_group["基本信息"]["dealer_price"] = { text: "经销商报价" };
-    let property_group_refined = JSON.parse(JSON.stringify(property_group));
 
     const data = reactive({
-      property_group_refined: property_group_refined,
-      cover_urls: cover_urls,
       car_info_filtered: {},
       series_num: 0,
       car_num: 0,
     });
-    const selected_car_ids = ref([]);
-    const hidden_series = ref({});
-    const property_value_set = ref({});
-
-    let property_filter_tmp = {};
-    for (let group_name in property_group) {
-      property_filter_tmp[group_name] = {};
-      for (const [prop_name, prop] of Object.entries(
-        property_group[group_name]
-      )) {
-        if (group_name.endsWith("-tf")) {
-          if ("sub_list" in prop) {
-            property_filter_tmp[group_name][prop_name] = [];
-          } else {
-            property_filter_tmp[group_name][prop_name] = false;
-          }
-        } else {
-          property_filter_tmp[group_name][prop_name] = [];
-        }
-      }
-    }
-
-    const property_filter = reactive(property_filter_tmp);
-
-    const property_filter_list = reactive({});
-
-    const property_filter_display = reactive({});
-
-    const updatePropertyFilterList = (
-      key,
-      value,
-      isRawValue,
-      text,
-      group_name
-    ) => {
-      if (key === "dealer_price") {
-        property_filter_list[key] = { isRawValue: isRawValue, value: value };
-        property_filter_display[key] = {
-          text: value.includes("-")
-            ? `${text}: ${value} 万`
-            : `${text}: ${value} 万以下`,
-          isRawValue: isRawValue,
-          group_name: group_name,
-        };
-      } else if (typeof value === "boolean") {
-        if (value === true) {
-          property_filter_list[key] = true;
-          property_filter_display[key] = {
-            key: key,
-            text: text,
-            group_name: group_name,
-          };
-        } else {
-          delete property_filter_list[key];
-          delete property_filter_display[key];
-        }
-      } else if (typeof value === "object") {
-        if (value.length === 0) {
-          delete property_filter_list[key];
-          delete property_filter_display[key];
-        } else {
-          property_filter_list[key] = { isRawValue: isRawValue, value: value };
-          if (isRawValue) {
-            for (const value_item of value) {
-              property_filter_display[value_item] = {
-                text: `${text}: ${value_item}`,
-                isRawValue: isRawValue,
-                key: key,
-                group_name: group_name,
-              };
-            }
-          } else {
-            for (const value_item of value) {
-              property_filter_display[value_item["option"]] = {
-                text: `${text}: ${value_item["label"]}`,
-                isRawValue: isRawValue,
-                parent: key,
-                group_name: group_name,
-              };
-            }
-          }
-        }
-      }
-      applyFilter();
+    const selected_car_ids = computed({
+      get() {
+        return store.state.globaldata.selected_car_ids;
+      },
+      set(newValue) {
+        store.commit("globaldata/updateSelectedCarIds", newValue);
+      },
+    });
+    const hidden_series = ref(store.state.globaldata.hidden_series);
+    const property_filter_display = reactive(
+      store.state.globaldata.property_filter_display
+    );
+    const deleteHiddenSeries = (series_id) => {
+      store.commit("globaldata/deleteHiddenSeries", series_id);
     };
-
-    const removePropertyFilter = (detail) => {
-      if (typeof detail["value"] === "string")
-        delete property_filter_display[detail["value"]];
-      else delete property_filter_display[detail["value"]["option"]];
-    };
-
-    const removeProperty = (key, value) => {
-      delete property_filter_display[key];
-      if ("isRawValue" in value) {
-        if (value["isRawValue"] === true) {
-          if (key === "dealer_price") {
-            delete property_filter_list[key];
-            property_filter[value["group_name"]][key] = null;
-          } else {
-            const idx =
-              property_filter[value["group_name"]][value["key"]].indexOf(key);
-            property_filter[value["group_name"]][value["key"]].splice(idx, 1);
-          }
-        } else {
-          let length =
-            property_filter[value["group_name"]][value["parent"]].length;
-          for (let i = 0; i < length; ++i) {
-            const ele =
-              property_filter[value["group_name"]][value["parent"]][i];
-            if (ele["option"] === key) {
-              property_filter[value["group_name"]][value["parent"]].splice(
-                i,
-                1
-              );
-              break;
-            }
-          }
-        }
-      } else {
-        delete property_filter_list[key];
-        property_filter[value["group_name"]][key] = false;
-      }
-      applyFilter();
-    };
+    const drawer_left = ref(false);
 
     const scrollToCarInfo = () => {
       applyFilter();
@@ -446,7 +179,13 @@ export default defineComponent({
       setVerticalScrollPosition(target, offset, duration);
     };
 
+    const propertyFilterRef = ref();
+    const removeProperty = (key, value) => {
+      propertyFilterRef.value.removeProperty(key, value);
+    };
+
     const applyFilter = () => {
+      const property_filter_list = store.state.globaldata.property_filter_list;
       let car_info_filter_df = car_info;
       if (Object.keys(property_filter_list).length > 0) {
         Object.keys(property_filter_list).forEach((key) => {
@@ -552,18 +291,15 @@ export default defineComponent({
       data["car_num"] = car_info_filter_groupBy.data.length;
       selected_car_ids.value = [];
     };
-    const drawer_left = ref(false);
     return {
       data,
       drawer_left,
       selected_car_ids,
       hidden_series,
-      property_filter,
-      property_filter_list,
       property_filter_display,
       property_value_set,
-      updatePropertyFilterList,
-      removePropertyFilter,
+      propertyFilterRef,
+      deleteHiddenSeries,
       removeProperty,
       scrollToCarInfo,
       applyFilter,
