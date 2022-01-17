@@ -26,9 +26,73 @@ self.addEventListener('message', async function (event) {
     return true;
   });
 
+  let rank_info = await get_sale_rank(event.data.origin);
+  let oil_rank = await get_oil_rank(event.data.origin);
+  for (const series_id in rank_info) {
+    if (oil_rank.hasOwnProperty(series_id)) {
+      rank_info[series_id].push(oil_rank[series_id]);
+    }
+  }
+
   self.postMessage({
     car_info: car_info,
     property_value_set: property_value_set,
-
+    rank_info: rank_info,
   })
 }, false);
+
+const get_sale_rank = async (origin) => {
+  const url =
+    "https://delicate-river-9bed.justforssr.workers.dev/corsproxy/?apiurl=https://ib-lq.snssdk.com/motor/brand/v6/select/series/v2";
+  let postBody = {
+    limit: 10000,
+    is_refresh: 0,
+    offset: 0,
+    sort_new: ["sale_desc"],
+    price: "0,30"
+  };
+  const response = await fetch(url, {
+    method: "POST",
+    // mode: "no-cors",
+    headers: {
+      Origin: origin,
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    },
+    body: new URLSearchParams(postBody).toString(),
+  });
+  var body = await response.json();
+  var { series } = body.data;
+  var ret = {};
+  for (const { concern_id, rank_info } of series) {
+    ret[concern_id] = [rank_info[0]];
+  }
+  return ret;
+}
+
+const get_oil_rank = async (origin) => {
+  const url =
+    "https://delicate-river-9bed.justforssr.workers.dev/corsproxy/?apiurl=https://ib-lq.snssdk.com/motor/brand/v6/select/series/v2";
+  let postBody = {
+    limit: 10000,
+    is_refresh: 0,
+    offset: 0,
+    sort_new: ["oil_asc"],
+    price: "0,30"
+  };
+  const response = await fetch(url, {
+    method: "POST",
+    // mode: "no-cors",
+    headers: {
+      Origin: origin,
+      "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
+    },
+    body: new URLSearchParams(postBody).toString(),
+  });
+  var body = await response.json();
+  var { series } = body.data;
+  var ret = {};
+  for (const { concern_id, rank_info } of series) {
+    ret[concern_id] = rank_info[0];
+  }
+  return ret;
+}

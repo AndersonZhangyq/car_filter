@@ -146,11 +146,6 @@ export default defineComponent({
     const property_filter = reactive(
       JSON.parse(JSON.stringify(property_filter_tmp))
     );
-    const data_source = computed({
-      get() {
-        return store.state.globaldata.data_source;
-      },
-    });
 
     const removeProperty = (key, value) => {
       if ("isRawValue" in value) {
@@ -189,7 +184,7 @@ export default defineComponent({
         property_filter[value["group_name"]][key] = false;
       }
       store.commit("globaldata/deletePropertyFilterDisplay", key);
-      if (data_source.value === "local") emit("applyFilter");
+      emit("applyFilter");
     };
 
     const updatePropertyFilterList = (
@@ -206,7 +201,7 @@ export default defineComponent({
         text: text,
         group_name: group_name,
       });
-      if (data_source.value === "local") emit("applyFilter");
+      emit("applyFilter");
     };
 
     const removePropertyFilter = (detail) => {
@@ -216,7 +211,6 @@ export default defineComponent({
     return {
       property_group_refined,
       property_filter,
-      data_source,
       updatePropertyFilterList,
       removePropertyFilter,
       removeProperty,

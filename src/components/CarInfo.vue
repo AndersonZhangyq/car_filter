@@ -9,7 +9,7 @@
       v-show="hidden_series[series_id] === undefined"
       :key="series_id"
     >
-      <q-intersection once :threshold="0.3">
+      <q-intersection once :threshold="0.3" class="full-height">
         <q-card class="full-height">
           <q-card-section class="row items-center">
             <div class="col-9 offset-1 text-center">
@@ -27,7 +27,7 @@
               />
             </div>
           </q-card-section>
-          <template v-if="data_source == 'dongchedi'">
+          <div style="min-height: 44px">
             <p
               v-for="info in value['rank_info']"
               :key="info"
@@ -35,7 +35,7 @@
             >
               {{ info["text"] }}，排名 {{ info["rank"] }} {{ info["explain"] }}
             </p>
-          </template>
+          </div>
           <img
             :src="cover_urls[series_id]"
             :style="{ width: '70%', margin: 'auto' }"
@@ -96,18 +96,17 @@ export default defineComponent({
         value: series_name,
       });
     };
-    const data_source = computed({
-      get() {
-        return store.state.globaldata.data_source;
-      },
-    });
     return {
       hidden_series,
       selected_car_ids,
       cover_urls,
-      data_source,
       addHiddenSeries,
     };
   },
 });
 </script>
+<style>
+div.q-intersection > div {
+  height: 100% !important;
+}
+</style>

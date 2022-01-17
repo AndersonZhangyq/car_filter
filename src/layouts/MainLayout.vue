@@ -38,21 +38,6 @@
             </div>
           </div>
         </div>
-        <div class="col-2 text-right">
-          <q-btn-toggle
-            v-model="data_source"
-            rounded
-            class="my-custom-toggle"
-            unelevated
-            toggle-color="primary"
-            color="white"
-            text-color="primary"
-            :options="[
-              { label: '本地数据', value: 'local' },
-              { label: '懂车帝', value: 'dongchedi' },
-            ]"
-          />
-        </div>
       </q-toolbar>
     </q-header>
     <q-drawer v-model="drawer_left" elevated overlay>
@@ -135,10 +120,12 @@ export default defineComponent({
       { type: "module" }
     );
     var car_info = null;
+    var rank_info = null;
     const property_value_set = ref({});
     worker.onmessage = (e) => {
       car_info = new dfd.DataFrame(e.data.car_info);
       car_info.set_index({ column: "car_id", inplace: true });
+      rank_info = e.data.rank_info;
       console.log(car_info.index);
       property_value_set.value = e.data.property_value_set;
       applyFilter();
@@ -156,6 +143,7 @@ export default defineComponent({
           "/assets/car_info_test.json",
           // "/assets/car_info_1.json",
         ],
+        origin: window.location.origin,
       });
     } else {
       worker.postMessage({
@@ -164,16 +152,9 @@ export default defineComponent({
           "/assets/car_info_2.json",
           "/assets/car_info_3.json",
         ],
+        origin: window.location.origin,
       });
     }
-    const data_source = computed({
-      get() {
-        return store.state.globaldata.data_source;
-      },
-      set(value) {
-        store.commit("globaldata/updateDateSource", value);
-      },
-    });
 
     const disable_in_dcd = new Set(["active_brake"]);
 
@@ -200,7 +181,7 @@ export default defineComponent({
     const drawer_left = ref(false);
 
     const scrollToCarInfo = () => {
-      applyFilter(true);
+      applyFilter();
       let ele_head = document.getElementById("head");
       const ele = document.getElementById("carInfo");
       const target = getScrollTarget(ele);
@@ -214,9 +195,9 @@ export default defineComponent({
       propertyFilterRef.value.removeProperty(key, value);
     };
 
-    const applyFilterLocal = (init_car_info = null, dongchedi_info = null) => {
+    const applyFilter = () => {
       const property_filter_list = store.state.globaldata.property_filter_list;
-      let car_info_filter_df = init_car_info == null ? car_info : init_car_info;
+      let car_info_filter_df = car_info;
       if (Object.keys(property_filter_list).length > 0) {
         Object.keys(property_filter_list).forEach((key) => {
           if (car_info_filter_df.size == 0) return;
@@ -289,7 +270,6 @@ export default defineComponent({
         "series_id",
         "series_name",
         "sub_brand_name",
-        "fuel_form",
       ];
       car_info_filter_df = car_info_filter_df.loc({
         columns: car_info_filter_col_name,
@@ -301,20 +281,10 @@ export default defineComponent({
         const tmp = [];
         let series_name = null;
         let sub_brand_name = null;
-        let updated_rank_info = null;
+        let updated_rank_info = rank_info[series_id];
         car_info_filter_col_dict[series_id].forEach((ele) => {
           if (series_name === null) series_name = ele[5];
           if (sub_brand_name === null) sub_brand_name = ele[6];
-
-          if (dongchedi_info != null) {
-            if (ele[7] == "纯电动") {
-              updated_rank_info = dongchedi_info[series_id]["rank_info"].filter(
-                (item) => !item.type_name.includes("油耗")
-              );
-            } else {
-              updated_rank_info = dongchedi_info[series_id]["rank_info"];
-            }
-          }
           tmp.push({
             car_year: ele[0],
             car_name: ele[1],
@@ -327,10 +297,9 @@ export default defineComponent({
           series_name: series_name,
           car_list: tmp,
           rank_info: updated_rank_info,
-          sale_rank:
-            dongchedi_info != null
-              ? dongchedi_info[series_id]["sale_rank"]
-              : 0x3f3f3f3f,
+          sale_rank: rank_info[series_id]
+            ? rank_info[series_id][0]["rank"]
+            : 0x3f3f3f3f,
         };
       }
       data["car_info_filtered"] = Object.entries(tmp_car_info_filtered).sort(
@@ -342,82 +311,8 @@ export default defineComponent({
       data["car_num"] = car_info_filter_groupBy.data.length;
       selected_car_ids.value = [];
     };
-
-    const applyFilterDongCheDi = async () => {
-      const url =
-        "https://delicate-river-9bed.justforssr.workers.dev/corsproxy/?apiurl=https://ib-lq.snssdk.com/motor/brand/v6/select/series/v2";
-      let postBody = {
-        limit: 10000,
-        is_refresh: 0,
-        offset: 0,
-        sort_new: ["oil_asc", "sale_desc"],
-      };
-      const property_filter_list = store.state.globaldata.property_filter_list;
-      for (const key in property_filter_list) {
-        if (disable_in_dcd.has(key)) continue;
-        if (property_filter_list[key] === true) {
-          postBody[key] = 1;
-        } else if (property_filter_list[key].isRawValue) {
-          if (key in dongchedi_config) {
-            postBody[key] = property_filter_list[key].value
-              .map((v) => dongchedi_config[key][v])
-              .join(",");
-          }
-        } else {
-          property_filter_list[key].value.forEach((item) => {
-            postBody[item.option] = 1;
-          });
-        }
-      }
-      const response = await fetch(url, {
-        method: "POST",
-        // mode: "no-cors",
-        headers: {
-          Origin: window.location.origin,
-          "Content-Type": "application/x-www-form-urlencoded; charset=UTF-8",
-        },
-        body: new URLSearchParams(postBody).toString(),
-      });
-      var ret = await response.json();
-      var { series } = ret.data;
-      var returned_car_ids = [];
-      var dongchedi_info = {};
-      let crawled_car_ids = new Set(car_info.index);
-      series.forEach(({ concern_id, car_ids, rank_info }) => {
-        car_ids = car_ids.filter((id) => {
-          return crawled_car_ids.has(`${id}`);
-        });
-        returned_car_ids = returned_car_ids.concat(car_ids);
-        if (car_ids.length > 0) {
-          dongchedi_info[concern_id] = {
-            rank_info: rank_info,
-            sale_rank: rank_info.find((item) => item.type_name.includes("销量"))
-              .rank,
-          };
-        }
-      });
-      if (returned_car_ids.length == 0) {
-        data["car_info_filtered"] = {};
-        data["series_num"] = 0;
-        data["car_num"] = 0;
-        return;
-      }
-      let tmp_car_info_filtered = car_info.loc({
-        rows: returned_car_ids.map((id) => `${id}`),
-      });
-      applyFilterLocal(tmp_car_info_filtered, dongchedi_info);
-    };
-
-    const applyFilter = (force = false) => {
-      if (data_source.value === "local") {
-        applyFilterLocal();
-      } else {
-        if (force) applyFilterDongCheDi();
-      }
-    };
     return {
       data,
-      data_source,
       drawer_left,
       selected_car_ids,
       hidden_series,
