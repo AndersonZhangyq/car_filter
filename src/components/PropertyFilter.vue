@@ -175,7 +175,7 @@ export default defineComponent({
           property_filter[value["group_name"]][value["parent"]] =
             property_filter[value["group_name"]][value["parent"]].filter(
               (ele) => {
-                return ele["options"] != key;
+                return ele["option"] != key;
               }
             );
           store.commit("globaldata/deletePropertyFilterListByKey", {
