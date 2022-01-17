@@ -4,5 +4,6 @@ export default function () {
     hidden_series: {},
     property_filter_display: {},
     property_filter_list: {},
+    data_source: "local",
   }
 }

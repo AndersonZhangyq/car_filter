@@ -2,6 +2,10 @@
 export function someMutation (state) => {
 }
 */
+export const updateDateSource = (state, payload) => {
+  state.data_source = payload;
+}
+
 export const updateSelectedCarIds = (state, payload) => {
   state.selected_car_ids = payload;
 }

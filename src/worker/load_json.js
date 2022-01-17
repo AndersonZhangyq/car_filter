@@ -18,6 +18,14 @@ self.addEventListener('message', async function (event) {
     })[0];
   }
 
+  const unique_series_id = new Set();
+  car_info = car_info.filter(car => {
+    if (unique_series_id.has(car.car_id))
+      return false;
+    unique_series_id.add(car.car_id);
+    return true;
+  });
+
   self.postMessage({
     car_info: car_info,
     property_value_set: property_value_set,

@@ -27,6 +27,11 @@
               />
             </div>
           </q-card-section>
+          <template v-if="data_source == 'dongchedi'">
+            <p v-for="info in value['rank_info']" :key="info" class="text-subtitle2 q-mb-none text-center">
+              {{ info["text"] }}，排名 {{ info["rank"] }} {{ info["explain"] }}
+            </p>
+          </template>
           <img
             :src="cover_urls[series_id]"
             :style="{ width: '70%', margin: 'auto' }"
@@ -87,10 +92,16 @@ export default defineComponent({
         value: series_name,
       });
     };
+    const data_source = computed({
+      get() {
+        return store.state.globaldata.data_source;
+      },
+    });
     return {
       hidden_series,
       selected_car_ids,
       cover_urls,
+      data_source,
       addHiddenSeries,
     };
   },
