@@ -33,17 +33,8 @@
               @click="scrollToCarInfo"
               label="Apply"
             />
-            <div
-              v-if="data_souce == 'local'"
-              class="col-auto text-black"
-            >
+            <div class="col-auto text-black">
               共 {{ data.series_num }} 车系 {{ data.car_num }} 车型
-            </div>
-            <div
-              v-else
-              class="col-auto text-black"
-            >
-              共 {{ data.car_num }} 车型
             </div>
           </div>
         </div>
@@ -184,6 +175,8 @@ export default defineComponent({
       },
     });
 
+    const disable_in_dcd = new Set(["active_brake"]);
+
     const data = reactive({
       car_info_filtered: {},
       series_num: 0,
@@ -221,9 +214,9 @@ export default defineComponent({
       propertyFilterRef.value.removeProperty(key, value);
     };
 
-    const applyFilterLocal = () => {
+    const applyFilterLocal = (init_car_info = null, dongchedi_info = null) => {
       const property_filter_list = store.state.globaldata.property_filter_list;
-      let car_info_filter_df = car_info;
+      let car_info_filter_df = init_car_info == null ? car_info : init_car_info;
       if (Object.keys(property_filter_list).length > 0) {
         Object.keys(property_filter_list).forEach((key) => {
           if (car_info_filter_df.size == 0) return;
@@ -296,6 +289,7 @@ export default defineComponent({
         "series_id",
         "series_name",
         "sub_brand_name",
+        "fuel_form",
       ];
       car_info_filter_df = car_info_filter_df.loc({
         columns: car_info_filter_col_name,
@@ -307,9 +301,20 @@ export default defineComponent({
         const tmp = [];
         let series_name = null;
         let sub_brand_name = null;
+        let updated_rank_info = null;
         car_info_filter_col_dict[series_id].forEach((ele) => {
           if (series_name === null) series_name = ele[5];
           if (sub_brand_name === null) sub_brand_name = ele[6];
+
+          if (dongchedi_info != null) {
+            if (ele[7] == "纯电动") {
+              updated_rank_info = dongchedi_info[series_id]["rank_info"].filter(
+                (item) => !item.type_name.includes("油耗")
+              );
+            } else {
+              updated_rank_info = dongchedi_info[series_id]["rank_info"];
+            }
+          }
           tmp.push({
             car_year: ele[0],
             car_name: ele[1],
@@ -317,13 +322,22 @@ export default defineComponent({
             car_id: ele[3],
           });
         });
-        tmp_car_info_filtered[series_id] = {
+        tmp_car_info_filtered[`${series_id}`] = {
           sub_brand_name: sub_brand_name,
           series_name: series_name,
           car_list: tmp,
+          rank_info: updated_rank_info,
+          sale_rank:
+            dongchedi_info != null
+              ? dongchedi_info[series_id]["sale_rank"]
+              : 0x3f3f3f3f,
         };
       }
-      data["car_info_filtered"] = tmp_car_info_filtered;
+      data["car_info_filtered"] = Object.entries(tmp_car_info_filtered).sort(
+        (a, b) => {
+          return a[1]["sale_rank"] - b[1]["sale_rank"];
+        }
+      );
       data["series_num"] = Object.keys(tmp_car_info_filtered).length;
       data["car_num"] = car_info_filter_groupBy.data.length;
       selected_car_ids.value = [];
@@ -340,6 +354,7 @@ export default defineComponent({
       };
       const property_filter_list = store.state.globaldata.property_filter_list;
       for (const key in property_filter_list) {
+        if (disable_in_dcd.has(key)) continue;
         if (property_filter_list[key] === true) {
           postBody[key] = 1;
         } else if (property_filter_list[key].isRawValue) {
@@ -364,55 +379,33 @@ export default defineComponent({
         body: new URLSearchParams(postBody).toString(),
       });
       var ret = await response.json();
-      var { series, series_count } = ret.data;
-      var tmp_car_info_filtered = {};
+      var { series } = ret.data;
+      var returned_car_ids = [];
+      var dongchedi_info = {};
+      let crawled_car_ids = new Set(car_info.index);
       series.forEach(({ concern_id, car_ids, rank_info }) => {
-        // console.log(concern_id, car_ids, rank_info);
-        let car_list = [];
-        let series_name = null;
-        let sub_brand_name = null;
-        car_ids.forEach((car_id) => {
-          try {
-            let json_data = car_info.loc({ rows: [`${car_id}`] }).to_json({
-              download: false,
-            })[0];
-            if (series_name === null) series_name = json_data["series_name"];
-            if (sub_brand_name === null)
-              sub_brand_name = json_data["sub_brand_name"];
-            if (json_data["fuel_form"] == "纯电动")
-              rank_info = rank_info.filter((item) => !item.type_name.includes("油耗"));
-            car_list.push({
-              car_id: car_id,
-              dealer_price: json_data["dealer_price"],
-              car_year: json_data["car_year"],
-              car_name: json_data["car_name"],
-            });
-          } catch (error) {}
+        car_ids = car_ids.filter((id) => {
+          return crawled_car_ids.has(`${id}`);
         });
-        if (car_list.length > 0) {
-          tmp_car_info_filtered[concern_id] = {
-            series_name: series_name,
-            sub_brand_name: sub_brand_name,
-            car_list: car_list,
+        returned_car_ids = returned_car_ids.concat(car_ids);
+        if (car_ids.length > 0) {
+          dongchedi_info[concern_id] = {
             rank_info: rank_info,
+            sale_rank: rank_info.find((item) => item.type_name.includes("销量"))
+              .rank,
           };
         }
       });
-      if ("car_year" in property_filter_list) {
-        for (const series_id in tmp_car_info_filtered) {
-          tmp_car_info_filtered[series_id]["car_list"] = tmp_car_info_filtered[
-            series_id
-          ]["car_list"].filter((car) =>
-            property_filter_list["car_year"].value.includes(car["car_year"])
-          );
-          if (tmp_car_info_filtered[series_id]["car_list"].length == 0) {
-            delete tmp_car_info_filtered[series_id];
-          }
-        }
+      if (returned_car_ids.length == 0) {
+        data["car_info_filtered"] = {};
+        data["series_num"] = 0;
+        data["car_num"] = 0;
+        return;
       }
-      data["car_info_filtered"] = tmp_car_info_filtered;
-      data["car_num"] = Object.keys(tmp_car_info_filtered).length;
-      selected_car_ids.value = [];
+      let tmp_car_info_filtered = car_info.loc({
+        rows: returned_car_ids.map((id) => `${id}`),
+      });
+      applyFilterLocal(tmp_car_info_filtered, dongchedi_info);
     };
 
     const applyFilter = (force = false) => {

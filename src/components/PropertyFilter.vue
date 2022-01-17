@@ -16,9 +16,6 @@
             <template v-if="'sub_list' in prop">
               <div class="col-6 col-md-2">
                 <q-select
-                  :disable="
-                    data_source == 'dongchedi' && disable_in_dcd.has(prop_key)
-                  "
                   :filled="property_filter[group_name][prop_key].length !== 0"
                   :outlined="property_filter[group_name][prop_key].length === 0"
                   v-model="property_filter[group_name][prop_key]"
@@ -50,9 +47,6 @@
             <div v-else class="col-6 col-md-2" :key="prop_key">
               <template v-if="group_name.endsWith('-tf')">
                 <q-checkbox
-                  :disable="
-                    data_source == 'dongchedi' && disable_in_dcd.has(prop_key)
-                  "
                   v-model="property_filter[group_name][prop_key]"
                   :label="prop['text']"
                   @update:model-value="
@@ -68,9 +62,6 @@
               </template>
               <template v-else>
                 <q-input
-                  :disable="
-                    data_source == 'dongchedi' && disable_in_dcd.has(prop_key)
-                  "
                   v-if="prop_key == 'dealer_price'"
                   v-model="property_filter[group_name][prop_key]"
                   label="经销商报价（万）"
@@ -86,9 +77,6 @@
                   "
                 />
                 <q-select
-                  :disable="
-                    data_source == 'dongchedi' && disable_in_dcd.has(prop_key)
-                  "
                   v-else
                   :filled="property_filter[group_name][prop_key].length !== 0"
                   :outlined="property_filter[group_name][prop_key].length === 0"
@@ -164,8 +152,6 @@ export default defineComponent({
       },
     });
 
-    const disable_in_dcd = ref(new Set(["active_brake"]));
-
     const removeProperty = (key, value) => {
       if ("isRawValue" in value) {
         if (value["isRawValue"] === true) {
@@ -231,7 +217,6 @@ export default defineComponent({
       property_group_refined,
       property_filter,
       data_source,
-      disable_in_dcd,
       updatePropertyFilterList,
       removePropertyFilter,
       removeProperty,

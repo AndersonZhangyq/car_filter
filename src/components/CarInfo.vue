@@ -5,8 +5,8 @@
         'col-12': true,
         'col-md-3': true,
       }"
+      v-for="[series_id, value] of car_info_filtered"
       v-show="hidden_series[series_id] === undefined"
-      v-for="(value, series_id) in car_info_filtered"
       :key="series_id"
     >
       <q-intersection once :threshold="0.3">
@@ -28,7 +28,11 @@
             </div>
           </q-card-section>
           <template v-if="data_source == 'dongchedi'">
-            <p v-for="info in value['rank_info']" :key="info" class="text-subtitle2 q-mb-none text-center">
+            <p
+              v-for="info in value['rank_info']"
+              :key="info"
+              class="text-subtitle2 q-mb-none text-center"
+            >
               {{ info["text"] }}，排名 {{ info["rank"] }} {{ info["explain"] }}
             </p>
           </template>
