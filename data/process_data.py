@@ -93,6 +93,7 @@ if __name__ == "__main__":
                 car_info[idx][key] = car_info[idx][key]["value"]
     df = pd.DataFrame(car_info)
     df = df.fillna("-")
+    df = df[(~df.gearbox_type.str.contains("手动")) & (~df.gearbox_type.str.contains("-"))]
     df.sort_values(by=["series_id", "dealer_price_value"], inplace=True)
     length = df.shape[0]
     indices = list(range(0, length, 3000))

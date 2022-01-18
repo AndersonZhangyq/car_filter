@@ -41,6 +41,7 @@ def get_data_by_condition(price_range: int or list or None):
         "limit": 30,
         "is_refresh": 0,
         "city_name": "上海",
+        "gearbox_type": 2
     }
     if price_range is not None:
         if isinstance(price_range, list):
