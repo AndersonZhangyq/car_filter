@@ -55,6 +55,11 @@ if __name__ == "__main__":
                             sub_list
                         )
                 i += 1
+    property_group['智能互联-tf']['center_screen_size'] = {'text': '中控屏尺寸'}
+    property_group['智能互联-tf']['center_down_screen_size'] = {'text': '中控下屏幕尺寸'}
+    property_group['智能化配置']['car_intelligent_chip_v4'] = {'text': '车载智能芯片'}
+    property_group['智能化配置']['driving_assist_chip_computing_v4'] = {'text': '辅助驾驶芯片算力(TOPS)'}
+    property_group['智能化配置']['driving_assist_chip_v4'] = {'text': '辅助驾驶芯片'}
     for group_name in property_group:
         prop = property_group[group_name]
         prop_keys = list(prop.keys())
@@ -63,7 +68,7 @@ if __name__ == "__main__":
         while i < len(prop_keys):
             if prop_keys[i].startswith(prop_keys[i - 1]):
                 parent_prop_key = prop_keys[i - 1]
-                if parent_prop_key in ['electric_back_door', 'auto_park']:
+                if parent_prop_key in ['electric_back_door', 'auto_park', 'center_screen']:
                     i += 1
                     continue
                 child_prop_key = prop_keys[i]
