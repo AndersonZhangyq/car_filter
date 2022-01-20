@@ -149,7 +149,7 @@ export default defineComponent({
       worker.postMessage({
         json_links: [
           "/assets/car_info_1.json",
-          // "/assets/car_info_2.json",
+          "/assets/car_info_2.json",
           // "/assets/car_info_3.json",
         ],
         origin: window.location.origin,
