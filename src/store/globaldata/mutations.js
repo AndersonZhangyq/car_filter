@@ -58,6 +58,15 @@ export const updatePropertyFilterList = (state, {
       isRawValue: isRawValue,
       group_name: group_name,
     };
+  } else if (key === "length" || key === "width" || key === "height") {
+    state.property_filter_list[key] = { isRawValue: isRawValue, value: value };
+    state.property_filter_display[key] = {
+      text: value.includes("-")
+        ? `${text}: ${value} mm`
+        : `${text}: ${value} mm以下`,
+      isRawValue: isRawValue,
+      group_name: group_name,
+    };
   } else if (typeof value === "boolean") {
     if (value === true) {
       state.property_filter_list[key] = true;

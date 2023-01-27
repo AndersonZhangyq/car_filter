@@ -76,6 +76,51 @@
                     )
                   "
                 />
+                <q-input
+                  v-else-if="prop_key == 'length'"
+                  v-model="property_filter[group_name][prop_key]"
+                  :label="prop['text']"
+                  @update:model-value="null"
+                  @blur="
+                    updatePropertyFilterList(
+                      prop_key,
+                      property_filter[group_name][prop_key],
+                      true,
+                      prop['text'],
+                      group_name
+                    )
+                  "
+                />
+                <q-input
+                  v-else-if="prop_key == 'width'"
+                  v-model="property_filter[group_name][prop_key]"
+                  :label="prop['text']"
+                  @update:model-value="null"
+                  @blur="
+                    updatePropertyFilterList(
+                      prop_key,
+                      property_filter[group_name][prop_key],
+                      true,
+                      prop['text'],
+                      group_name
+                    )
+                  "
+                />
+                <q-input
+                  v-else-if="prop_key == 'height'"
+                  v-model="property_filter[group_name][prop_key]"
+                  :label="prop['text']"
+                  @update:model-value="null"
+                  @blur="
+                    updatePropertyFilterList(
+                      prop_key,
+                      property_filter[group_name][prop_key],
+                      true,
+                      prop['text'],
+                      group_name
+                    )
+                  "
+                />
                 <q-select
                   v-else
                   :filled="property_filter[group_name][prop_key].length !== 0"
@@ -150,7 +195,7 @@ export default defineComponent({
     const removeProperty = (key, value) => {
       if ("isRawValue" in value) {
         if (value["isRawValue"] === true) {
-          if (key === "dealer_price") {
+          if (key === "dealer_price" || key === "length" || key === "width" || key === "height") {
             store.commit("globaldata/deletePropertyFilterList", key);
             property_filter[value["group_name"]][key] = null;
           } else {

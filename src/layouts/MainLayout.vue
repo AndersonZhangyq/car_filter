@@ -228,6 +228,25 @@ export default defineComponent({
                   ),
                 });
               }
+            } else if (key === "length" || key === "width" || key === "height") {
+              if (value.value.includes("-")) {
+                const numbers = value.value.split("-");
+                const low = parseFloat(numbers[0]);
+                const high = parseFloat(numbers[1]);
+                car_info_filter_df = car_info_filter_df.loc({
+                  rows: car_info_filter_df[key].le(high),
+                });
+                if (car_info_filter_df.size == 0) return;
+                car_info_filter_df = car_info_filter_df.loc({
+                  rows: car_info_filter_df[key].ge(low),
+                });
+              } else {
+                car_info_filter_df = car_info_filter_df.loc({
+                  rows: car_info_filter_df[key].le(
+                    parseFloat(value.value)
+                  ),
+                });
+              }
             } else {
               let index_series = null;
               for (const v of value.value) {
@@ -270,6 +289,9 @@ export default defineComponent({
         "series_id",
         "series_name",
         "sub_brand_name",
+        "length",
+        "width",
+        "height"
       ];
       car_info_filter_df = car_info_filter_df.loc({
         columns: car_info_filter_col_name,
@@ -282,9 +304,11 @@ export default defineComponent({
         let series_name = null;
         let sub_brand_name = null;
         let updated_rank_info = rank_info[series_id];
+        let car_size = null;
         car_info_filter_col_dict[series_id].forEach((ele) => {
           if (series_name === null) series_name = ele[5];
           if (sub_brand_name === null) sub_brand_name = ele[6];
+          if (car_size === null) car_size = [ele[7], ele[8], ele[9]]
           tmp.push({
             car_year: ele[0],
             car_name: ele[1],
@@ -297,6 +321,7 @@ export default defineComponent({
           series_name: series_name,
           car_list: tmp,
           rank_info: updated_rank_info,
+          car_size: car_size,
           sale_rank: rank_info[series_id]
             ? rank_info[series_id][0]["rank"]
             : 0x3f3f3f3f,

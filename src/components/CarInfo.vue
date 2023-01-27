@@ -40,6 +40,9 @@
             :src="cover_urls[series_id]"
             :style="{ width: '70%', margin: 'auto' }"
           />
+          <p class="text-subtitle2 q-mb-none text-center">
+            {{ value["car_size"].join(" x ") }}
+          </p>
           <q-card-section>
             <q-list bordered separator></q-list>
             <q-item v-for="info in value['car_list']" :key="info['car_id']">
