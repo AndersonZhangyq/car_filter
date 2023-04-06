@@ -102,7 +102,7 @@ if __name__ == "__main__":
     df.sort_values(by=["series_id", "dealer_price_value"], inplace=True)
     df = df.fillna("-")
     length = df.shape[0]
-    indices = list(range(0, length, 3000))
+    indices = list(range(0, length, 2000))
     indices.append(length - 1)
     if indices[-1] - indices[-2] < 1000:
         indices.pop(-2)
